@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        canvas {
+            max-width: 500px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            border: none;
+            background-color: #1db954;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #17a74a;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Your Results</h1>
+    <canvas id="resultsChart"></canvas>
+    <button onclick="window.location.href='quiz.html'">Retake Quiz</button>
+
+    <script>
+        const scores = JSON.parse(localStorage.getItem("quizScores")) || [0,0,0,0,0,0];
+        const labels = ["Intellect", "Religion", "Strength", "Endurance", "Social Life", "Mental Health"];
+
+        new Chart(document.getElementById("resultsChart"), {
+            type: "radar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Your Stats",
+                    data: scores,
+                    borderColor: "#1db954",
+                    backgroundColor: "rgba(29, 185, 84, 0.2)",
+                    pointBackgroundColor: "#1db954",
+                    borderWidth: 2
+                }]
+            },
+            options: {
+    scales: {
+        r: {
+            min: 0,
+            max: 6,
+            ticks: {
+                display: false // Hides the numbers
+            },
+            grid: { color: "rgba(255,255,255,0.2)" },
+            angleLines: { color: "rgba(255,255,255,0.2)" }
+        }
+    },
+    plugins: {
+        legend: {
+            labels: { color: "white" }
+        }
+    }
+}
+
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Self-Betterment Quiz</title>
+<style>
+  body {
+    background-color: #121212;
+    color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  #quiz-container {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+  }
+  button {
+    background-color: #222;
+    color: #fff;
+    padding: 12px 18px;
+    margin: 8px 0;
+    border: 1px solid #444;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+  }
+  button:hover {
+    background: linear-gradient(90deg, #00c0ff, #0077ff);
+    border-color: #00c0ff;
+    transform: scale(1.02);
+  }
+</style>
+</head>
+<body>
+
+<div id="quiz-container">
+  <h1>Self-Betterment Quiz</h1>
+  <p id="question"></p>
+  <div id="options"></div>
+</div>
+
+<script>
+const questions = [
+  { category: "Intellect", question: "How many books do you read per month?", options: ["None", "1", "2", "3", "4", "5+"] },
+  { category: "Religion", question: "How many of the 5 daily prayers do you consistently perform?", options: ["0", "1", "2", "3", "4", "5"] },
+  { category: "Strength", question: "How many push-ups can you do in one set?", options: ["0", "1-5", "6-15", "16-30", "31-50", "51+"] },
+  { category: "Endurance", question: "How tired are you after a 5 km run?", options: ["Completely exhausted", "Very tired", "Moderately tired", "Slightly tired", "Barely tired", "Not tired at all"] },
+  { category: "Social Life", question: "How many close friends do you regularly see in person?", options: ["0", "1", "2", "3-4", "5-7", "8+"] },
+  { category: "Mental Health", question: "How often do you feel calm and content?", options: ["Never", "Rarely", "Sometimes", "Often", "Very often", "Always"] }
+];
+
+let currentQuestion = 0;
+let scores = [];
+
+function showQuestion() {
+  const q = questions[currentQuestion];
+  document.getElementById("question").innerText = q.question;
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+  q.options.forEach((opt, index) => {
+    let btn = document.createElement("button");
+    btn.innerText = opt;
+    btn.onclick = () => {
+      scores.push(index + 1);
+      nextQuestion();
+    };
+    optionsDiv.appendChild(btn);
+  });
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    showQuestion();
+  } else {
+    localStorage.setItem("quizResults", JSON.stringify(scores));
+    window.location.href = "results.html";
+  }
+}
+
+showQuestion();
+</script>
+
+</body>
+</html>
