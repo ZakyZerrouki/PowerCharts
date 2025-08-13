@@ -14,14 +14,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
   }
   #quiz-container {
     background: #1e1e1e;
     padding: 20px;
     border-radius: 10px;
     width: 90%;
-    max-width: 500px;
+    max-width: 600px;
     text-align: center;
   }
   button {
@@ -53,16 +53,51 @@
 
 <script>
 const questions = [
-  { category: "Intellect", question: "How many books do you read per month?", options: ["None", "1", "2", "3", "4", "5+"] },
+  // INTELLECT
+  { category: "Intellect", question: "How many books or articles do you read per month?", options: ["None", "1", "2-3", "4-5", "6-7", "8+"] },
+  { category: "Intellect", question: "Can you solve complex problems without help?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { category: "Intellect", question: "How often do you learn a new skill?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { category: "Intellect", question: "Do you engage in logical reasoning games or puzzles?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { category: "Intellect", question: "How well do you retain new knowledge?", options: ["Very poorly", "Poorly", "Average", "Good", "Very good", "Excellent"] },
+
+  // RELIGION
   { category: "Religion", question: "How many of the 5 daily prayers do you consistently perform?", options: ["0", "1", "2", "3", "4", "5"] },
+  { category: "Religion", question: "Do you fast during Ramadan completely?", options: ["Never", "Rarely", "Sometimes", "Mostly", "Yes, fully", "Always"] },
+  { category: "Religion", question: "Do you give charity consistently?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { category: "Religion", question: "Do you read or study religious texts regularly?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { category: "Religion", question: "Do you trust and rely on God in difficult situations?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+
+  // STRENGTH
   { category: "Strength", question: "How many push-ups can you do in one set?", options: ["0", "1-5", "6-15", "16-30", "31-50", "51+"] },
-  { category: "Endurance", question: "How tired are you after a 5 km run?", options: ["Completely exhausted", "Very tired", "Moderately tired", "Slightly tired", "Barely tired", "Not tired at all"] },
-  { category: "Social Life", question: "How many close friends do you regularly see in person?", options: ["0", "1", "2", "3-4", "5-7", "8+"] },
-  { category: "Mental Health", question: "How often do you feel calm and content?", options: ["Never", "Rarely", "Sometimes", "Often", "Very often", "Always"] }
+  { category: "Strength", question: "How many pull-ups can you do?", options: ["0", "1", "2-5", "6-10", "11-20", "20+"] },
+  { category: "Strength", question: "Can you lift heavy objects easily?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { category: "Strength", question: "How strong is your core (planks, sit-ups)?", options: ["Very weak", "Weak", "Average", "Strong", "Very strong", "Excellent"] },
+  { category: "Strength", question: "How balanced is your overall muscular development?", options: ["Very poor", "Poor", "Average", "Good", "Very good", "Excellent"] },
+
+  // ENDURANCE
+  { category: "Endurance", question: "How tired are you after a 5 km run?", options: ["Exhausted", "Very tired", "Moderately tired", "Slightly tired", "Barely tired", "Not tired"] },
+  { category: "Endurance", question: "How long can you maintain a steady pace while running?", options: ["<5min", "5-10min", "10-20min", "20-30min", "30-60min", "60+min"] },
+  { category: "Endurance", question: "How long can you perform high-intensity activity?", options: ["<1min", "1-3min", "3-5min", "5-10min", "10-20min", "20+min"] },
+  { category: "Endurance", question: "Can you do long-duration cycling, swimming, or similar?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { category: "Endurance", question: "How quickly do you recover from fatigue?", options: ["Very slowly", "Slowly", "Average", "Fast", "Very fast", "Instant"] },
+
+  // SOCIAL LIFE
+  { category: "Social Life", question: "How many close friends do you regularly see?", options: ["0", "1", "2", "3-4", "5-7", "8+"] },
+  { category: "Social Life", question: "How well do you handle conflicts with others?", options: ["Very poorly", "Poorly", "Average", "Good", "Very good", "Excellent"] },
+  { category: "Social Life", question: "Do you participate in community or social events?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { category: "Social Life", question: "Do you maintain healthy relationships?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { category: "Social Life", question: "How empathetic are you towards others?", options: ["Very low", "Low", "Average", "Good", "Very good", "High"] },
+
+  // MENTAL HEALTH
+  { category: "Mental Health", question: "How often do you feel calm and content?", options: ["Never", "Rarely", "Sometimes", "Often", "Very often", "Always"] },
+  { category: "Mental Health", question: "How well do you manage stress?", options: ["Very poorly", "Poorly", "Average", "Well", "Very well", "Excellent"] },
+  { category: "Mental Health", question: "Do you get enough restful sleep?", options: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { category: "Mental Health", question: "How often do you feel motivated?", options: ["Never", "Rarely", "Sometimes", "Often", "Very often", "Always"] },
+  { category: "Mental Health", question: "How well can you focus and concentrate?", options: ["Very poorly", "Poorly", "Average", "Good", "Very good", "Excellent"] }
 ];
 
 let currentQuestion = 0;
-let scores = [];
+let scores = { "Intellect":0, "Religion":0, "Strength":0, "Endurance":0, "Social Life":0, "Mental Health":0 };
 
 function showQuestion() {
   const q = questions[currentQuestion];
@@ -73,7 +108,7 @@ function showQuestion() {
     let btn = document.createElement("button");
     btn.innerText = opt;
     btn.onclick = () => {
-      scores.push(index + 1);
+      scores[q.category] = (scores[q.category] || 0) + (index + 1);
       nextQuestion();
     };
     optionsDiv.appendChild(btn);
@@ -85,8 +120,14 @@ function nextQuestion() {
   if (currentQuestion < questions.length) {
     showQuestion();
   } else {
-    localStorage.setItem("quizResults", JSON.stringify(scores));
-    window.location.href = "results.html";
+    // Average scores per category
+    const categoryCounts = {};
+    questions.forEach(q => { categoryCounts[q.category] = (categoryCounts[q.category]||0)+1; });
+    for (let cat in scores) {
+      scores[cat] = parseFloat((scores[cat]/categoryCounts[cat]).toFixed(2));
+    }
+    localStorage.setItem("quizScores", JSON.stringify(scores));
+    window.location.href = "Results.html";
   }
 }
 
