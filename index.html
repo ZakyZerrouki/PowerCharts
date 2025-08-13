@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Self-Betterment Hub</title>
+<style>
+  body {
+    background-color: #121212;
+    color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  #lobby {
+    background: #1e1e1e;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0px 0px 20px rgba(0,0,0,0.5);
+  }
+  h1 {
+    color: #00c0ff;
+    margin-bottom: 20px;
+  }
+  button {
+    background-color: #222;
+    color: #fff;
+    padding: 12px 18px;
+    margin: 10px 0;
+    border: 1px solid #444;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+  }
+  button:hover {
+    background: linear-gradient(90deg, #00c0ff, #0077ff);
+    border-color: #00c0ff;
+    transform: scale(1.02);
+  }
+</style>
+</head>
+<body>
+
+<div id="lobby">
+  <h1>Welcome to Self-Betterment Hub</h1>
+  <p>Track your progress. Improve yourself.</p>
+  
+  <button onclick="window.location.href='login.html'">Login</button>
+  <button onclick="window.location.href='contact.html'">Contact</button>
+  <button onclick="window.location.href='quiz.html'">Start Quiz</button>
+</div>
+
+</body>
+</html>
