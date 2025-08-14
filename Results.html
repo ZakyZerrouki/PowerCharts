@@ -3,140 +3,189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Results</title>
+<title>Power Chart · Results</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
+  :root{ --bg:#0f0f10; --panel:#151a1c; --ink:#eaf2f7; --muted:#9fb0bd; --accent:#1db954; --gold:#ffd700; --radius:16px; }
   body {
-    background-color: #0f0f0f;
-    color: #fff;
-    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 30px 20px;
   }
-  h1 {
-    font-weight: 600;
-    font-size: 2rem;
-    margin-bottom: 20px;
-    text-align: center;
-    color: #1db954;
-    text-shadow: 0 0 10px rgba(29, 185, 84, 0.6);
-  }
+  h1 { font-weight: 700; font-size: 2rem; margin-bottom: 10px; text-align: center; }
+  .meta { color: var(--muted); margin-bottom: 22px; font-size: .95rem }
   .results-container {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 50px;
-    flex-wrap: wrap;
-    justify-content: center;
-    background-color: #1a1a1a;
-    padding: 25px 30px;
-    border-radius: 15px;
-    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    display: flex; flex-direction: row; align-items: flex-start;
+    gap: 24px; flex-wrap: wrap; justify-content: center;
+    background: linear-gradient(180deg,#151a1d, #0f1214);
+    padding: 22px 24px; border-radius: var(--radius);
+    border: 1px solid #25323a;
+    box-shadow: 0 16px 50px rgba(0,0,0,0.45);
   }
-  canvas {
-    max-width: 450px;
-    max-height: 450px;
-  }
-  .score-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    font-size: 18px;
-    min-width: 180px;
-  }
+  canvas { max-width: 520px; max-height: 520px; }
+  .score-list { display: grid; gap: 10px; font-size: 16px; min-width: 240px; }
   .score-item {
-    background-color: #121212;
-    padding: 10px 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    font-weight: 500;
-    display: flex;
-    justify-content: space-between;
-  }
-  button {
-    margin-top: 25px;
-    padding: 12px 25px;
-    border: none;
-    background-color: #1db954;
-    color: #fff;
-    cursor: pointer;
-    font-size: 16px;
+    background-color: #0f1417;
+    padding: 10px 12px;
     border-radius: 12px;
-    transition: 0.25s;
+    border: 1px solid #25323a;
+    display: grid; grid-template-columns: 1fr auto; gap:8px; align-items:center;
+  }
+  .badge{
+    font-weight: 700; padding: 4px 8px; border-radius: 999px; font-size: 12px; border:1px solid rgba(0,0,0,.1);
+    display:inline-block; min-width: 26px; text-align:center; color:#000;
+  }
+  .btns{ margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center }
+  button {
+    padding: 11px 16px; border: 1px solid #25323a; background-color: #10161a;
+    color: var(--ink); cursor: pointer; font-size: 15px; border-radius: 12px; transition:.2s;
     font-weight: 600;
   }
-  button:hover {
-    background-color: #17a74a;
-  }
+  button:hover { border-color:#2f4654; transform: translateY(-1px); }
+  .muted{ color: var(--muted); font-size:.9rem }
 </style>
 </head>
 <body>
 
-<h1>Your Quiz Results</h1>
+<h1>Your Power Chart</h1>
+<div class="meta" id="metaLine">Alpha 0.01 · Demo</div>
 
 <div class="results-container">
   <canvas id="resultsChart"></canvas>
   <div class="score-list" id="scoreList"></div>
 </div>
 
-<button onclick="window.location.href='Quiz.html'">Retake Quiz</button>
+<div class="btns">
+  <button onclick="window.location.href='Quiz.html'">Retake Quiz</button>
+  <button id="downloadBtn">Download PNG</button>
+  <button id="clearBtn" title="Clears saved results">Clear Saved Result</button>
+</div>
+
+<p class="muted">Tip: come back after a new PR and retake the quiz — your chart will update.</p>
 
 <script>
 const labels = ["Intellect", "Religion", "Strength", "Endurance", "Social Life", "Mental Health"];
-const storedScores = JSON.parse(localStorage.getItem("quizScores") || "{}");
-const scores = labels.map(label => storedScores[label] || 0);
 
-// Populate score list
+// Load latest payload (new) or fallback (legacy)
+const latest = JSON.parse(localStorage.getItem("powerChart.latest") || "null");
+const legacy = JSON.parse(localStorage.getItem("quizScores") || "{}");
+
+// Compute display data
+let averages = labels.map(label => (legacy[label] ? legacy[label] : 0)); // 1–6
+let grades = {};
+let normalized = {};
+let timestamp = null;
+
+function gradeFromAverage(avg1to6){
+  const pct = Math.max(0, Math.min(100, Math.round(((avg1to6 - 1) / 5) * 100)));
+  if (pct >= 95) return {grade:"S", color:"#ffd700", pct};
+  if (pct >= 85) return {grade:"A", color:"#1db954", pct};
+  if (pct >= 75) return {grade:"B", color:"#21bf73", pct};
+  if (pct >= 65) return {grade:"C", color:"#3ea0ff", pct};
+  if (pct >= 50) return {grade:"D", color:"#ffb020", pct};
+  if (pct >= 35) return {grade:"E", color:"#ff6b6b", pct};
+  return {grade:"F", color:"#ff4d4f", pct};
+}
+
+if (latest){
+  timestamp = latest.timestamp;
+  averages = labels.map(l => latest.averages[l] ?? 0);
+  grades = latest.grades;
+  normalized = latest.normalized;
+} else {
+  // derive from legacy if present
+  labels.forEach(l => {
+    const g = gradeFromAverage(legacy[l] || 0);
+    grades[l] = g.grade; normalized[l] = g.pct;
+  });
+}
+
+if (timestamp){
+  const dt = new Date(timestamp);
+  const nice = dt.toLocaleString(undefined, {year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit"});
+  document.getElementById("metaLine").textContent = `Recorded ${nice}`;
+}
+
+// Build score list
 const scoreListDiv = document.getElementById("scoreList");
-labels.forEach((label, i) => {
-    const score = scores[i].toFixed(2);
-    const item = document.createElement("div");
-    item.classList.add("score-item");
-    item.innerHTML = `<span>${label}</span><span>${score}</span>`;
-    scoreListDiv.appendChild(item);
+labels.forEach(label => {
+  const idx = labels.indexOf(label);
+  const avg = (averages[idx] || 0);
+  const gInfo = gradeFromAverage(avg);
+  const g = grades[label] || gInfo.grade;
+  const pct = normalized[label] ?? gInfo.pct;
+  const color = gInfo.color;
+  const item = document.createElement("div");
+  item.classList.add("score-item");
+  item.innerHTML = `<div><strong>${label}</strong><div class="muted">${pct}%</div></div>
+                    <span class="badge" style="background:${color}">${g}</span>`;
+  scoreListDiv.appendChild(item);
 });
 
 // Radar chart
-new Chart(document.getElementById("resultsChart"), {
-    type: "radar",
-    data: {
-        labels: labels,
-        datasets: [{
-            label: "Your Stats",
-            data: scores,
-            borderColor: "#1db954",
-            backgroundColor: "rgba(29, 185, 84, 0.25)",
-            pointBackgroundColor: "#1db954",
-            borderWidth: 2
-        }]
+const gradedLabels = labels.map((label, i) => {
+  const avg = averages[i] || 0;
+  const g = grades[label] || gradeFromAverage(avg).grade;
+  return `${label} (${g})`;
+});
+const datasetColor = "rgba(29, 185, 84, 0.25)";
+const borderColor = "#1db954";
+
+const chart = new Chart(document.getElementById("resultsChart"), {
+  type: "radar",
+  data: {
+    labels: gradedLabels,
+    datasets: [{
+      label: "Your Stats (0–100)",
+      data: labels.map((_, i) => Math.max(0, Math.min(100, Math.round(((averages[i]||0) - 1) / 5 * 100)))),
+      borderColor,
+      backgroundColor: datasetColor,
+      pointBackgroundColor: borderColor,
+      borderWidth: 2
+    }]
+  },
+  options: {
+    animation: { duration: 600 },
+    scales: {
+      r: {
+        min: 0,
+        max: 100,
+        ticks: { display: false },
+        grid: { color: "rgba(255,255,255,0.15)" },
+        angleLines: { color: "rgba(255,255,255,0.3)" },
+        pointLabels: { color: "white", font: { size: 14, weight: 600 } }
+      }
     },
-    options: {
-        scales: {
-            r: {
-                min: 0,
-                max: 6,
-                ticks: { display: false }, // remove numbers
-                grid: { color: "rgba(255,255,255,0.15)" }, // keep lines subtle
-                angleLines: { color: "rgba(255,255,255,0.3)" },
-                pointLabels: { color: "white", font: { size: 14, weight: 600 } }
-            }
-        },
-        plugins: {
-            legend: {
-                labels: { color: "white", font: { weight: 600, size: 14 } }
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return context.dataset.label + ": " + context.raw.toFixed(2);
-                    }
-                }
-            }
+    plugins: {
+      legend: {
+        labels: { color: "white", font: { weight: 600, size: 14 } }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(ctx){
+            return ctx.dataset.label + ": " + ctx.raw + "%";
+          }
         }
+      }
     }
+  }
+});
+
+// Download & Clear
+document.getElementById("downloadBtn").addEventListener("click", ()=>{
+  const link = document.createElement("a");
+  link.download = "power-chart.png";
+  link.href = chart.toBase64Image();
+  link.click();
+});
+document.getElementById("clearBtn").addEventListener("click", ()=>{
+  localStorage.removeItem("powerChart.latest");
+  alert("Saved result cleared. Retake the quiz to generate a new chart.");
 });
 </script>
 
