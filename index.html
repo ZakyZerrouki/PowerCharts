@@ -3,154 +3,61 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Power Chart · Home</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<title>Self-Betterment Hub</title>
 <style>
-  :root{
-    --bg:#0b0d10; --panel:#12161a; --ring:#25323a; --ink:#eaf2f7; --muted:#9fb0bd;
-    --accent:#1db954; --accent2:#00a8ff; --radius:16px;
+  body {
+    background-color: #121212;
+    color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    background: radial-gradient(1200px 600px at 80% -10%, rgba(0,168,255,.25), transparent),
-                radial-gradient(1000px 500px at -10% 110%, rgba(29,185,84,.20), transparent),
-                var(--bg);
-    color:var(--ink);
+  #lobby {
+    background: #1e1e1e;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0px 0px 20px rgba(0,0,0,0.5);
   }
-  .nav{
-    position:sticky; top:0; z-index:40; backdrop-filter: blur(8px);
-    background: rgba(12,14,17,.55); border-bottom:1px solid rgba(37,50,58,.35);
+  h1 {
+    color: #00c0ff;
+    margin-bottom: 20px;
   }
-  .nav-inner{
-    max-width:1100px; margin:0 auto; height:58px; display:flex; align-items:center; justify-content:space-between; padding:0 14px;
+  button {
+    background-color: #222;
+    color: #fff;
+    padding: 12px 18px;
+    margin: 10px 0;
+    border: 1px solid #444;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+    transition: all 0.2s ease;
   }
-  .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px }
-  .badge{ font-size:.75rem; padding:2px 8px; border:1px solid #2b3a44; border-radius:999px; color:var(--muted) }
-  .links{ display:flex; gap:8px; }
-  a.btn, button.btn{
-    text-decoration:none; color:var(--ink); background:#0f1417; border:1px solid var(--ring);
-    padding:10px 14px; border-radius:12px; font-weight:600; font-size:.95rem; display:inline-flex; align-items:center; gap:8px; cursor:pointer;
-    transition:.2s;
+  button:hover {
+    background: linear-gradient(90deg, #00c0ff, #0077ff);
+    border-color: #00c0ff;
+    transform: scale(1.02);
   }
-  a.btn:hover, button.btn:hover{ transform: translateY(-1px); border-color:#2e4553 }
-  .hero{
-    max-width:1100px; margin:34px auto; padding:0 14px; display:grid; grid-template-columns: 1.2fr 1fr; gap:24px; align-items:center;
-  }
-  .title{ font-size: clamp(2rem, 5vw, 3rem); line-height:1.05; margin:0 0 10px; }
-  .kicker{ color:var(--muted); margin-bottom:14px }
-  .cta{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px }
-  .primary{ background:linear-gradient(90deg,var(--accent2),var(--accent)); border-color:transparent; }
-  .ghost{ background:transparent }
-  .panel{
-    background: linear-gradient(180deg, #151a1d, #0f1214); border:1px solid var(--ring); border-radius:var(--radius);
-    padding:18px; box-shadow: 0 16px 50px rgba(0,0,0,.45);
-  }
-  .grid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
-  .card{ background:#0f1417; border:1px solid var(--ring); border-radius:14px; padding:12px; min-height:120px; display:flex; flex-direction:column; justify-content:space-between }
-  .card h3{ margin:0 0 6px; font-size:1rem }
-  .muted{ color:var(--muted) }
-  .coming{ font-size:.8rem; color:#ffd700; background:rgba(255,215,0,.1); border:1px solid rgba(255,215,0,.35); padding:2px 8px; border-radius:999px }
-  footer{ max-width:1100px; margin:24px auto 32px; padding:0 14px; display:flex; justify-content:space-between; color:var(--muted); font-size:.9rem }
-  .statline{ display:flex; gap:10px; align-items:center; flex-wrap:wrap }
-  .dot{ width:10px; height:10px; border-radius:50%; background:var(--accent) }
-  .fade-in{ animation: fade .5s ease both; } @keyframes fade{ from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none} }
 </style>
 </head>
 <body>
-  <div class="nav">
-    <div class="nav-inner">
-      <div class="brand">
-        <div style="width:28px;height:28px;border-radius:8px;background:conic-gradient(from 90deg at 50% 50%, var(--accent2), var(--accent)); border:1px solid rgba(255,255,255,.15)"></div>
-        Power Chart
-        <span class="badge">Alpha</span>
-      </div>
-      <div class="links">
-        <a class="btn" href="Quiz.html">Quiz</a>
-        <a class="btn" href="Results.html">Results</a>
-        <a class="btn" href="Data.html">Your Data</a>
-        <button class="btn" data-action="profile">Profile</button>
-      </div>
-    </div>
-  </div>
 
-  <section class="hero">
-    <div class="fade-in">
-      <h1 class="title">Track your life like an RPG.</h1>
-      <p class="kicker">Build your radar chart across Strength, Intellect, Religion, Mental Health, Endurance, and Social Life. Update your PRs anytime and watch your stats evolve.</p>
-      <div class="cta">
-        <a class="btn primary" href="Quiz.html">Start the Quiz</a>
-        <a class="btn ghost" href="Data.html">Enter Real Stats</a>
-        <a class="btn" href="Results.html">See My Chart</a>
-      </div>
+<div id="lobby">
+  <h1>Welcome to Self-Betterment Hub</h1>
+  <p>Track your progress. Improve yourself.</p>
+  
+  <button onclick="window.location.href='login.html'">Login</button>
+  <button onclick="window.location.href='contact.html'">Contact</button>
+  <button onclick="window.location.href='quiz.html'">Start Quiz</button>
+</div>
 
-      <div class="panel" style="margin-top:16px">
-        <div class="statline">
-          <div class="dot"></div>
-          <div id="lastSaved" class="muted">No saved chart yet.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel fade-in">
-      <div class="grid">
-        <div class="card">
-          <div>
-            <h3>Color Themes</h3>
-            <p class="muted">Tweak chart color & fill opacity. Your choice is saved locally.</p>
-          </div>
-          <a class="btn" href="Results.html">Customize</a>
-        </div>
-        <div class="card">
-          <div>
-            <h3>Track Real Metrics</h3>
-            <p class="muted">20+ inputs per attribute — from 1RM lifts to sleep hours.</p>
-          </div>
-          <a class="btn" href="Data.html">Open “Your Data”</a>
-        </div>
-        <div class="card">
-          <div>
-            <h3>Profiles</h3>
-            <p class="muted">Save multiple profiles with different charts.</p>
-          </div>
-          <button class="btn" data-action="coming">Coming soon</button>
-        </div>
-        <div class="card">
-          <div>
-            <h3>Progress History</h3>
-            <p class="muted">See how your radar expands over time.</p>
-          </div>
-          <button class="btn" data-action="coming">Coming soon</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer>
-    <div>© <span id="year"></span> Power Chart</div>
-    <div class="muted">All data is stored locally in your browser.</div>
-  </footer>
-
-<script>
-// Footer year
-document.getElementById('year').textContent = new Date().getFullYear();
-
-// Last saved chart info
-const latest = JSON.parse(localStorage.getItem("powerChart.latest") || "null");
-if (latest && latest.timestamp) {
-  const dt = new Date(latest.timestamp);
-  const nice = dt.toLocaleString(undefined, {year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit"});
-  document.getElementById("lastSaved").textContent = "Last saved chart: " + nice;
-}
-
-// Placeholder buttons
-document.querySelectorAll('[data-action="coming"]').forEach(btn => {
-  btn.addEventListener('click', ()=> alert("This feature is coming soon."));
-});
-document.querySelector('[data-action="profile"]').addEventListener('click', ()=>{
-  alert("Profile area coming soon.");
-});
-</script>
 </body>
 </html>
