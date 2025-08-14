@@ -8,199 +8,249 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b0d10; --panel:#12161a; --ink:#eaf2f7; --muted:#9fb0bd; --ring:#24323a;
+    --bg:#0b0d10; --panel:#12161a; --ring:#25323a; --ink:#eaf2f7; --muted:#9fb0bd;
     --accent:#1db954; --accent2:#00a8ff; --radius:16px;
-    --tap:48px;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink);
-    background: var(--bg);
-    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background: radial-gradient(1200px 600px at 80% -10%, rgba(0,168,255,.22), transparent),
+                radial-gradient(1000px 500px at -10% 110%, rgba(29,185,84,.18), transparent),
+                var(--bg);
+    color:var(--ink);
   }
 
-  /* Header */
-  header{
-    position:sticky; top:0; z-index:30; backdrop-filter: blur(8px);
+  /* Header (shared) */
+  .nav{
+    position:sticky; top:0; z-index:40; backdrop-filter: blur(8px);
     background: rgba(12,14,17,.55); border-bottom:1px solid rgba(37,50,58,.35);
+    padding: env(safe-area-inset-top) 0 0;
   }
-  .h-inner{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; }
+  .nav-inner{
+    max-width:1200px; margin:0 auto; height:58px; display:flex; align-items:center; justify-content:space-between; padding:0 14px;
+  }
   .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px }
-  .logo{ width:28px; height:28px; border-radius:8px; background:conic-gradient(from 90deg at 50% 50%, var(--accent2), var(--accent)); border:1px solid rgba(255,255,255,.15) }
-  .pfp{ width:36px; height:36px; border-radius:999px; border:1px solid rgba(255,255,255,.15); overflow:hidden; background:linear-gradient(135deg,#00a8ff,#1db954); display:grid; place-items:center; }
-  .pfp img{ width:100%; height:100%; object-fit:cover }
-  .sub{ color:var(--muted); font-size:.9rem }
+  .logo{ width:28px;height:28px;border-radius:8px;background:conic-gradient(from 90deg at 50% 50%, var(--accent2), var(--accent)); border:1px solid rgba(255,255,255,.15) }
+  .badge{ font-size:.75rem; padding:2px 8px; border:1px solid #2b3a44; border-radius:999px; color:var(--muted) }
+  .avatar{ width:34px; height:34px; border-radius:999px; border:1px solid rgba(255,255,255,.15); background:linear-gradient(135deg,var(--accent2),var(--accent)); display:grid; place-items:center; font-weight:800; font-size:.8rem; overflow:hidden }
+  .avatar img{ width:100%; height:100%; object-fit:cover }
 
-  /* Hero */
+  /* Mobile-first layout */
   .hero{
-    display:grid; gap:12px; padding:16px 14px 6px;
+    max-width:1200px; margin:14px auto; padding:0 14px 80px; /* space for bottom nav */
   }
-  .title{ font-size:clamp(1.6rem, 5vw, 2.6rem); line-height:1.1; margin:0 }
-  .kicker{ color:var(--muted); margin:0 }
-  .cta{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px }
-  .btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    height:var(--tap); padding:0 14px; border-radius:12px; border:1px solid var(--ring); background:#10161a; color:var(--ink);
-    text-decoration:none; font-weight:700; font-size:1rem;
-  }
-  .btn.primary{ border:none; background:linear-gradient(90deg,var(--accent2),var(--accent)); color:#04130a; }
-  .btn.ghost{ background:transparent }
-  .btn:active{ transform: translateY(1px); }
+  .eyebrow{ color:var(--muted); font-size:.9rem }
+  .title{ font-size: clamp(1.9rem, 6vw, 3.2rem); line-height:1.05; margin:8px 0 10px; }
+  .kicker{ color:var(--muted); margin-bottom:14px }
 
-  /* Cards */
-  .section{ padding:10px 14px 90px; } /* leave space for bottom nav */
-  .panel{ background: linear-gradient(180deg, #151a1d, #0f1214); border:1px solid var(--ring); border-radius:var(--radius); padding:14px; box-shadow: 0 16px 50px rgba(0,0,0,.35); }
-  .grid{ display:grid; gap:10px; }
-  .card{ background:#0f1417; border:1px solid var(--ring); border-radius:14px; padding:12px; display:grid; gap:8px }
-  .card h3{ margin:0; font-size:1rem }
-  .muted{ color:var(--muted); font-size:.95rem }
-  .row{ display:flex; align-items:center; justify-content:space-between; gap:10px }
-  .pill{ font-size:.8rem; padding:2px 10px; border:1px solid #2b3a44; border-radius:999px; color:var(--muted) }
-
-  /* Bottom Nav (mobile-first) */
-  .nav-bottom{
-    position:fixed; left:0; right:0; bottom:0; z-index:40;
-    background:#0f1417; border-top:1px solid var(--ring);
-    padding: max(8px, env(safe-area-inset-bottom)) 8px  calc(env(safe-area-inset-bottom));
+  .cta-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;
   }
-  .tabs{ display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; }
-  .tab{
-    height:var(--tap); border-radius:12px; border:1px solid var(--ring); background:#0c1114;
-    color:var(--ink); display:grid; place-items:center; text-decoration:none; font-weight:600; font-size:.95rem;
+  a.btn, button.btn{
+    text-decoration:none; color:var(--ink); background:#0f1417; border:1px solid var(--ring);
+    padding:14px; border-radius:14px; font-weight:700; font-size:1rem; display:inline-flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;
+    min-height:52px; transition:.2s;
   }
-  .tab:active{ transform: translateY(1px); }
-  .tab.primary{ background:linear-gradient(90deg,var(--accent2),var(--accent)); color:#04130a; border:none; }
+  a.btn:active, button.btn:active{ transform: scale(.98) }
+  .primary{ background:linear-gradient(90deg,var(--accent2),var(--accent)); border-color:transparent; }
 
-  /* Larger screens */
+  .info{
+    margin-top:16px; background: linear-gradient(180deg, #151a1d, #0f1214); border:1px solid var(--ring); border-radius:var(--radius);
+    padding:14px; box-shadow: 0 16px 50px rgba(0,0,0,.45);
+  }
+  .row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap }
+  .muted{ color:var(--muted) }
+
+  /* Feature cards (mobile) */
+  .grid{
+    display:grid; grid-template-columns:1fr; gap:10px; margin-top:14px;
+  }
+  .card{ background:#0f1417; border:1px solid var(--ring); border-radius:14px; padding:12px; min-height:110px; display:flex; flex-direction:column; justify-content:space-between }
+  .card h3{ margin:0 0 6px; font-size:1rem }
+
+  /* Sticky bottom nav (mobile only) */
+  .tabs{
+    position:fixed; left:0; right:0; bottom:0; z-index:50; padding-bottom: max(env(safe-area-inset-bottom), 8px);
+    background:rgba(12,14,17,.7); backdrop-filter: blur(8px); border-top:1px solid rgba(37,50,58,.35);
+  }
+  .tabs-inner{ max-width:600px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:8px 12px 0; }
+  .tab{ display:flex; flex-direction:column; align-items:center; gap:4px; font-size:.85rem; color:var(--ink); text-decoration:none }
+  .dot{ width:8px; height:8px; border-radius:999px; background:var(--accent) }
+
+  /* ===== Desktop Enhancements ===== */
   @media (min-width: 768px){
-    .hero{ grid-template-columns: 1.2fr 1fr; align-items:center; padding-top:24px }
-    .cta{ grid-template-columns: repeat(3, 1fr); }
-    .grid.cards{ grid-template-columns: repeat(2, 1fr); }
-    .section{ padding-bottom:24px }
+    .hero{ padding-bottom: 24px; }
+    .cta-grid{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .tabs{ display:none; } /* hide bottom nav on tablet/desktop */
   }
-
-  /* Motion & touch tweaks */
-  @media (prefers-reduced-motion: reduce){
-    *{ animation:none !important; transition:none !important }
+  @media (min-width: 1024px){
+    .hero-wrap{
+      max-width:1200px; margin:24px auto; padding:0 14px;
+      display:grid; grid-template-columns: 1.1fr 0.9fr; gap:20px; align-items:stretch;
+    }
+    .hero{ padding:0; margin:0; }
+    .panel{
+      background: linear-gradient(180deg, #151a1d, #0f1214); border:1px solid var(--ring); border-radius:var(--radius);
+      padding:18px; box-shadow: 0 16px 50px rgba(0,0,0,.45);
+    }
+    .desktop-right{
+      display:grid; grid-template-rows: 320px auto; gap:16px;
+    }
+    .preview{
+      position:relative; overflow:hidden; border-radius:14px; border:1px solid var(--ring); background:#0f1417;
+      display:grid; place-items:center;
+    }
+    .radar{
+      width:100%; height:100%; max-width:520px; max-height:320px; opacity:.9;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(29,185,84,.25), transparent 60%);
+    }
+    .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .fade{ animation: fade .5s ease both; }
+    @keyframes fade{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
   }
 </style>
 </head>
 <body>
-  <header>
-    <div class="h-inner">
+  <div class="nav">
+    <div class="nav-inner">
       <div class="brand">
         <div class="logo"></div>
-        <div>
-          Power Chart
-          <div id="sub" class="sub">Loading profile…</div>
-        </div>
+        <span>Power Chart</span>
+        <span class="badge">Alpha</span>
+        <span id="who" class="badge" style="display:none"></span>
       </div>
-      <a class="pfp" href="Profiles.html" title="Profiles"><span>PC</span></a>
+      <a class="avatar" href="Profiles.html" title="Profiles" id="avatar"><span>PC</span></a>
     </div>
-  </header>
+  </div>
 
-  <section class="hero">
-    <div>
-      <h1 class="title">Track your life like an RPG.</h1>
-      <p class="kicker">Big, thumb‑friendly buttons. Fast updates. All data stays on your device.</p>
-      <div class="cta">
+  <div class="hero-wrap">
+    <section class="hero fade">
+      <div class="eyebrow">Track your life like an RPG</div>
+      <h1 class="title">Mobile‑first now.<br>Polished on desktop.</h1>
+      <p class="kicker">Build your radar chart across Strength, Intellect, Religion, Mental Health, Endurance, Social Life, and Career. Update PRs anytime and watch your stats evolve.</p>
+
+      <div class="cta-grid">
         <a class="btn primary" href="Quiz.html">Start Quiz</a>
-        <a class="btn" href="Results.html">My Chart</a>
-        <a class="btn" href="Data.html">Your Data</a>
-        <a class="btn ghost" href="Profiles.html">Profiles</a>
+        <a class="btn" href="Results.html">See My Chart</a>
+        <a class="btn" href="Data.html">Enter Real Stats</a>
       </div>
-    </div>
-    <div class="panel">
-      <div class="row">
-        <div>
-          <div class="muted">Active profile</div>
-          <div id="username" style="font-weight:800">Player One</div>
-        </div>
-        <span id="attrCount" class="pill">— attributes</span>
-      </div>
-      <div class="card" style="margin-top:8px">
+
+      <div class="info" style="margin-top:16px">
         <div class="row">
-          <strong>Last saved chart</strong>
-          <span id="lastSaved" class="muted">—</span>
-        </div>
-        <div class="row">
-          <span class="muted">Quick actions</span>
-          <div class="row" style="gap:6px">
-            <a class="btn" style="height:40px;padding:0 10px" href="Quiz.html">Quiz</a>
-            <a class="btn" style="height:40px;padding:0 10px" href="Data.html">Update Data</a>
+          <div id="lastSaved" class="muted">No saved chart yet.</div>
+          <div style="display:flex; gap:8px">
+            <a class="btn" href="Profiles.html">Profiles</a>
+            <a class="btn" href="Results.html">Open Results</a>
           </div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <section class="section">
-    <div class="grid cards">
-      <div class="card">
-        <h3>Color & Opacity</h3>
-        <p class="muted">Customize your chart appearance. Saved per profile.</p>
-        <a class="btn" href="Results.html">Open Results</a>
+      <div class="grid">
+        <div class="card">
+          <div>
+            <h3>Color Themes</h3>
+            <p class="muted">Tweak chart color & fill opacity. Your choice is saved per profile.</p>
+          </div>
+          <a class="btn" href="Results.html">Customize</a>
+        </div>
+        <div class="card">
+          <div>
+            <h3>Your Data</h3>
+            <p class="muted">20+ inputs per attribute — from 1RM lifts to sleep hours.</p>
+          </div>
+          <a class="btn" href="Data.html">Open Data</a>
+        </div>
       </div>
-      <div class="card">
-        <h3>Attributes</h3>
-        <p class="muted">Toggle which stats you want to track (Career, Strength, etc.).</p>
-        <a class="btn" href="Profiles.html">Manage in Profiles</a>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <nav class="nav-bottom">
-    <div class="tabs">
-      <a class="tab primary" href="Results.html">Results</a>
-      <a class="tab" href="Quiz.html">Quiz</a>
-      <a class="tab" href="Data.html">Data</a>
-      <a class="tab" href="Profiles.html">Profiles</a>
+    <!-- Desktop right column -->
+    <aside class="desktop-right" aria-hidden="true">
+      <div class="panel preview fade">
+        <div class="radar">
+          <!-- simple decorative preview -->
+          <svg viewBox="0 0 100 100" width="100%" height="100%" style="max-width:420px;max-height:260px">
+            <g fill="none" stroke="rgba(255,255,255,.15)">
+              <polygon points="50,5 93,28 93,72 50,95 7,72 7,28"/>
+              <polygon points="50,14 84,33 84,67 50,86 16,67 16,33"/>
+              <polygon points="50,23 75,38 75,62 50,77 25,62 25,38"/>
+            </g>
+            <polygon points="50,20 75,38 82,60 48,75 25,62 30,35" fill="rgba(29,185,84,.28)" stroke="rgba(29,185,84,.9)"></polygon>
+          </svg>
+        </div>
+      </div>
+      <div class="panel fade">
+        <div class="grid">
+          <div class="card">
+            <div>
+              <h3>Profiles</h3>
+              <p class="muted">Multiple users with different attributes & themes.</p>
+            </div>
+            <a class="btn" href="Profiles.html">Manage</a>
+          </div>
+          <div class="card">
+            <div>
+              <h3>Progress History</h3>
+              <p class="muted">See how your radar expands over time.</p>
+            </div>
+            <button class="btn" onclick="alert('Coming soon')">Coming soon</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Mobile sticky tabs -->
+  <nav class="tabs">
+    <div class="tabs-inner">
+      <a class="tab" href="Results.html"><div class="dot"></div><div>Results</div></a>
+      <a class="tab" href="Quiz.html"><div class="dot"></div><div>Quiz</div></a>
+      <a class="tab" href="Data.html"><div class="dot"></div><div>Your Data</div></a>
+      <a class="tab" href="Profiles.html"><div class="dot"></div><div>Profiles</div></a>
     </div>
   </nav>
 
-  <!-- minimal profile reader -->
   
 <script>
-/* Minimal profile helper (read-only here) */
-const PC_MIN = (function(){
-  const KEY = "powerChart.profiles";
-  function load(){ try{ return JSON.parse(localStorage.getItem(KEY) || "{}"); }catch(e){ return {}; } }
-  function getActive(){
+/* ===== PowerChart Profiles & Storage Helpers (minimal) ===== */
+const PC = (function(){
+  const PROFILE_KEY = "powerChart.profiles";
+  function load(){ try{ return JSON.parse(localStorage.getItem(PROFILE_KEY)||'{"activeId":null,"byId":{}}'); }catch(e){ return {activeId:null,byId:{}}; } }
+  function save(s){ localStorage.setItem(PROFILE_KEY, JSON.stringify(s)); }
+  function ensure(){
     const s = load();
-    if (!s.activeId || !s.byId || !s.byId[s.activeId]) {
-      return { id:null, username:"Player One", pfp:null, enabledAttrs:["Intellect","Religion","Strength","Endurance","Social Life","Mental Health","Career"] };
+    if (!s.activeId || !s.byId[s.activeId]){
+      const id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+      s.byId[id] = { username: "Player One", pfp: null, enabledAttrs: ["Intellect","Religion","Strength","Endurance","Social Life","Mental Health","Career"], theme:{primary:"#1db954",alpha:25} };
+      s.activeId = id; save(s);
     }
-    return { id:s.activeId, ...s.byId[s.activeId] };
+    return s;
   }
-  return { getActive };
+  function active(){ const s = ensure(); return { id: s.activeId, ...s.byId[s.activeId] }; }
+  function key(base){ const {id} = active(); return `${base}.${id}`; }
+  return { active, key, load, save, ensure };
 })();
 </script>
 
+  <script>
+  // Show active user + last saved timestamp (per profile)
+  const ap = PC.active();
+  const who = document.getElementById('who');
+  who.style.display = 'inline-block';
+  who.textContent = ap.username || 'Player One';
+  const av = document.getElementById('avatar');
+  if (ap.pfp){ av.innerHTML = '<img src="'+ap.pfp+'" alt="pfp">'; }
 
-<script>
-(function init(){
-  const p = PC_MIN.getActive();
-  const sub = document.getElementById('sub');
-  const nameEl = document.getElementById('username');
-  const attrCountEl = document.getElementById('attrCount');
-  const pfp = document.querySelector('.pfp');
-
-  sub.textContent = (p.enabledAttrs ? p.enabledAttrs.length : 7) + " attributes enabled";
-  nameEl.textContent = p.username || "Player One";
-  attrCountEl.textContent = (p.enabledAttrs ? p.enabledAttrs.length : 7) + " attributes";
-  if (p.pfp){ pfp.innerHTML = '<img alt="pfp">'; pfp.querySelector('img').src = p.pfp; }
-
-  const latest = JSON.parse(localStorage.getItem("powerChart.latest."+ (p.id || "")) || "null") ||
-                 JSON.parse(localStorage.getItem("powerChart.latest") || "null"); // fallback first run
-  if (latest && latest.timestamp){
+  const latest = JSON.parse(localStorage.getItem(PC.key("powerChart.latest")) || "null");
+  if (latest && latest.timestamp) {
     const dt = new Date(latest.timestamp);
     const nice = dt.toLocaleString(undefined, {year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit"});
-    document.getElementById("lastSaved").textContent = nice;
-  } else {
-    document.getElementById("lastSaved").textContent = "none yet";
+    document.getElementById("lastSaved").textContent = "Last saved chart: " + nice;
   }
-})();
-</script>
+  </script>
 </body>
 </html>
