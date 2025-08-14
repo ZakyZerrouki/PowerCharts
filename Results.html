@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#0f0f10; --panel:#151a1c; --ink:#eaf2f7; --muted:#9fb0bd; --accent:#1db954; --gold:#ffd700; --radius:16px; }
+  :root{ --bg:#0f0f10; --panel:#151a1c; --ink:#eaf2f7; --muted:#9fb0bd; --accent:#1db954; --radius:16px; }
   body {
     background-color: var(--bg);
     color: var(--ink);
@@ -48,9 +48,38 @@
   }
   button:hover { border-color:#2f4654; transform: translateY(-1px); }
   .muted{ color: var(--muted); font-size:.9rem }
+
+  /* Floating color selector */
+  .color-panel{
+    position: fixed; top: 16px; right: 16px; z-index: 10;
+    background: #0f1417; border:1px solid #24323b; border-radius: 12px; padding: 10px 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.45);
+    display:flex; align-items:center; gap:10px;
+  }
+  .chip{
+    width: 22px; height: 22px; border-radius: 6px; border:1px solid rgba(255,255,255,.2); cursor:pointer;
+  }
+  .tiny{ font-size:12px; color:var(--muted) }
+  .sep{ width:1px; height:22px; background:#24323b; }
+  .alpha-slider{ width: 100px; }
+  .color-input{ width: 36px; height: 24px; border:none; background:transparent; cursor:pointer; }
 </style>
 </head>
 <body>
+
+<!-- Floating Color Selector -->
+<div class="color-panel" title="Customize chart colors">
+  <span class="tiny">Color</span>
+  <input id="primaryPicker" class="color-input" type="color" value="#1db954" />
+  <div class="chip" data-color="#1db954" style="background:#1db954"></div>
+  <div class="chip" data-color="#00a8ff" style="background:#00a8ff"></div>
+  <div class="chip" data-color="#8a5cff" style="background:#8a5cff"></div>
+  <div class="chip" data-color="#ff6b6b" style="background:#ff6b6b"></div>
+  <div class="chip" data-color="#ffb020" style="background:#ffb020"></div>
+  <div class="sep"></div>
+  <span class="tiny">Fill</span>
+  <input id="alphaRange" class="alpha-slider" type="range" min="5" max="70" step="1" value="25" />
+</div>
 
 <h1>Your Power Chart</h1>
 <div class="meta" id="metaLine">Alpha 0.01 · Demo</div>
@@ -71,6 +100,28 @@
 <script>
 const labels = ["Intellect", "Religion", "Strength", "Endurance", "Social Life", "Mental Health"];
 
+// THEME: load + persist
+const THEME_KEY = "powerChart.theme";
+const theme = JSON.parse(localStorage.getItem(THEME_KEY) || "{}");
+let primary = theme.primary || "#1db954";
+let alpha = typeof theme.alpha === "number" ? theme.alpha : 25;
+
+document.getElementById("primaryPicker").value = primary;
+document.getElementById("alphaRange").value = alpha;
+
+// Helpers
+function hexToRGBA(hex, a){
+  let c = hex.replace("#","");
+  if (c.length===3){ c = c.split("").map(x=>x+x).join(""); }
+  const r = parseInt(c.substring(0,2),16);
+  const g = parseInt(c.substring(2,4),16);
+  const b = parseInt(c.substring(4,6),16);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+function saveTheme(){
+  localStorage.setItem(THEME_KEY, JSON.stringify({primary, alpha: parseInt(alpha)}));
+}
+
 // Load latest payload (new) or fallback (legacy)
 const latest = JSON.parse(localStorage.getItem("powerChart.latest") || "null");
 const legacy = JSON.parse(localStorage.getItem("quizScores") || "{}");
@@ -84,7 +135,7 @@ let timestamp = null;
 function gradeFromAverage(avg1to6){
   const pct = Math.max(0, Math.min(100, Math.round(((avg1to6 - 1) / 5) * 100)));
   if (pct >= 95) return {grade:"S", color:"#ffd700", pct};
-  if (pct >= 85) return {grade:"A", color:"#1db954", pct};
+  if (pct >= 85) return {grade:"A", color:primary, pct}; // use primary for A+ tiers
   if (pct >= 75) return {grade:"B", color:"#21bf73", pct};
   if (pct >= 65) return {grade:"C", color:"#3ea0ff", pct};
   if (pct >= 50) return {grade:"D", color:"#ffb020", pct};
@@ -133,8 +184,8 @@ const gradedLabels = labels.map((label, i) => {
   const g = grades[label] || gradeFromAverage(avg).grade;
   return `${label} (${g})`;
 });
-const datasetColor = "rgba(29, 185, 84, 0.25)";
-const borderColor = "#1db954";
+let datasetBorder = primary;
+let datasetFill = hexToRGBA(primary, alpha/100);
 
 const chart = new Chart(document.getElementById("resultsChart"), {
   type: "radar",
@@ -143,9 +194,9 @@ const chart = new Chart(document.getElementById("resultsChart"), {
     datasets: [{
       label: "Your Stats (0–100)",
       data: labels.map((_, i) => Math.max(0, Math.min(100, Math.round(((averages[i]||0) - 1) / 5 * 100)))),
-      borderColor,
-      backgroundColor: datasetColor,
-      pointBackgroundColor: borderColor,
+      borderColor: datasetBorder,
+      backgroundColor: datasetFill,
+      pointBackgroundColor: datasetBorder,
       borderWidth: 2
     }]
   },
@@ -175,6 +226,33 @@ const chart = new Chart(document.getElementById("resultsChart"), {
     }
   }
 });
+
+// Color panel interactions
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    primary = chip.dataset.color;
+    document.getElementById('primaryPicker').value = primary;
+    applyTheme();
+  });
+});
+document.getElementById('primaryPicker').addEventListener('input', (e)=>{
+  primary = e.target.value;
+  applyTheme();
+});
+document.getElementById('alphaRange').addEventListener('input', (e)=>{
+  alpha = parseInt(e.target.value, 10);
+  applyTheme();
+});
+
+function applyTheme(){
+  const border = primary;
+  const fill = hexToRGBA(primary, alpha/100);
+  chart.data.datasets[0].borderColor = border;
+  chart.data.datasets[0].pointBackgroundColor = border;
+  chart.data.datasets[0].backgroundColor = fill;
+  chart.update();
+  saveTheme();
+}
 
 // Download & Clear
 document.getElementById("downloadBtn").addEventListener("click", ()=>{
