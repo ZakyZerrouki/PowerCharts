@@ -7,109 +7,115 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#0f0f10; --panel:#151a1c; --ink:#eaf2f7; --muted:#9fb0bd; --accent:#1db954; --radius:16px; }
-  body {
-    background-color: var(--bg);
-    color: var(--ink);
-    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 30px 20px;
-  }
+  :root{ --bg:#0f0f10; --panel:#151a1c; --ink:#eaf2f7; --muted:#9fb0bd; --radius:16px; --ring:#25323a; }
+  body { background-color: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin:0; }
+  main { display:flex; flex-direction:column; align-items:center; padding: 72px 20px 30px; }
   h1 { font-weight: 700; font-size: 2rem; margin-bottom: 10px; text-align: center; }
   .meta { color: var(--muted); margin-bottom: 22px; font-size: .95rem }
   .results-container {
-    display: flex; flex-direction: row; align-items: flex-start;
-    gap: 24px; flex-wrap: wrap; justify-content: center;
-    background: linear-gradient(180deg,#151a1d, #0f1214);
-    padding: 22px 24px; border-radius: var(--radius);
-    border: 1px solid #25323a;
-    box-shadow: 0 16px 50px rgba(0,0,0,0.45);
+    display:flex; flex-direction:row; align-items:flex-start; gap:24px; flex-wrap:wrap; justify-content:center;
+    background: linear-gradient(180deg,#151a1d, #0f1214); padding:22px 24px; border-radius: var(--radius);
+    border: 1px solid var(--ring); box-shadow: 0 16px 50px rgba(0,0,0,0.45);
   }
   canvas { max-width: 520px; max-height: 520px; }
-  .score-list { display: grid; gap: 10px; font-size: 16px; min-width: 240px; }
-  .score-item {
-    background-color: #0f1417;
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid #25323a;
-    display: grid; grid-template-columns: 1fr auto; gap:8px; align-items:center;
-  }
-  .badge{
-    font-weight: 700; padding: 4px 8px; border-radius: 999px; font-size: 12px; border:1px solid rgba(0,0,0,.1);
-    display:inline-block; min-width: 26px; text-align:center; color:#000;
-  }
+  .score-list { display:grid; gap:10px; font-size:16px; min-width:240px; }
+  .score-item { background-color:#0f1417; padding:10px 12px; border-radius:12px; border:1px solid var(--ring);
+    display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; }
+  .badge{ font-weight:700; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid rgba(0,0,0,.1); display:inline-block; min-width:26px; text-align:center; color:#000; }
   .btns{ margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center }
-  button {
-    padding: 11px 16px; border: 1px solid #25323a; background-color: #10161a;
-    color: var(--ink); cursor: pointer; font-size: 15px; border-radius: 12px; transition:.2s;
-    font-weight: 600;
-  }
+  button { padding:11px 16px; border:1px solid var(--ring); background-color:#10161a; color:var(--ink); cursor:pointer; font-size:15px; border-radius:12px; transition:.2s; font-weight:600; }
   button:hover { border-color:#2f4654; transform: translateY(-1px); }
   .muted{ color: var(--muted); font-size:.9rem }
 
-  /* Floating color selector */
-  .color-panel{
-    position: fixed; top: 16px; right: 16px; z-index: 10;
-    background: #0f1417; border:1px solid #24323b; border-radius: 12px; padding: 10px 12px;
-    box-shadow: 0 8px 30px rgba(0,0,0,.45);
-    display:flex; align-items:center; gap:10px;
-  }
-  .chip{
-    width: 22px; height: 22px; border-radius: 6px; border:1px solid rgba(255,255,255,.2); cursor:pointer;
-  }
+  /* Top bar */
+  .topbar{ position:fixed; top:0; left:0; right:0; height:56px; display:flex; align-items:center; justify-content:flex-end; padding:0 14px; backdrop-filter: blur(6px); background: rgba(15,16,17,.35); border-bottom:1px solid rgba(37,50,58,.35); z-index:20; }
+  .avatar{ width:36px; height:36px; border-radius:999px; background:linear-gradient(135deg,#00a8ff,#1db954); border:1px solid rgba(255,255,255,.15); display:grid; place-items:center; font-weight:800; font-size:.8rem; cursor:pointer; }
+  .menu{ position:absolute; top:50px; right:10px; background:#0f1417; border:1px solid var(--ring); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.5); min-width:180px; display:none; }
+  .menu a{ display:block; padding:10px 12px; color:var(--ink); text-decoration:none; font-size:.95rem; }
+  .menu a:hover{ background:#11181d; }
+  .carret{ margin-left:8px; opacity:.7 }
+
+  /* Compact Color Toggle */
+  .color-toggle{ position:fixed; right:14px; bottom:14px; width:40px; height:40px; border-radius:12px; border:1px solid var(--ring);
+    background:#0f1417; display:grid; place-items:center; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,.5); z-index:15; }
+  .color-toggle span{ display:block; transform: rotate(90deg); font-size:20px; line-height:1; color:var(--ink); opacity:.75; }
+  .color-pop{ position:fixed; right:14px; bottom:64px; width:220px; padding:10px; border-radius:12px; background:#0f1417; border:1px solid var(--ring);
+    box-shadow:0 12px 40px rgba(0,0,0,.55); display:none; z-index:15; }
+  .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0; }
   .tiny{ font-size:12px; color:var(--muted) }
-  .sep{ width:1px; height:22px; background:#24323b; }
-  .alpha-slider{ width: 100px; }
-  .color-input{ width: 36px; height: 24px; border:none; background:transparent; cursor:pointer; }
+  .alpha{ width:120px; }
+  .fullcolor{ width:100%; height:34px; border:none; background:transparent; cursor:pointer; padding:0; }
+
 </style>
 </head>
 <body>
+  <div class="topbar">
+    <div id="profileBtn" class="avatar" title="Profile">PC</div>
+    <div id="profileMenu" class="menu">
+      <a href="Data.html">Your Data</a>
+      <a href="#" id="logoutLike">Sign out (mock)</a>
+    </div>
+  </div>
 
-<!-- Floating Color Selector -->
-<div class="color-panel" title="Customize chart colors">
-  <span class="tiny">Color</span>
-  <input id="primaryPicker" class="color-input" type="color" value="#1db954" />
-  <div class="chip" data-color="#1db954" style="background:#1db954"></div>
-  <div class="chip" data-color="#00a8ff" style="background:#00a8ff"></div>
-  <div class="chip" data-color="#8a5cff" style="background:#8a5cff"></div>
-  <div class="chip" data-color="#ff6b6b" style="background:#ff6b6b"></div>
-  <div class="chip" data-color="#ffb020" style="background:#ffb020"></div>
-  <div class="sep"></div>
-  <span class="tiny">Fill</span>
-  <input id="alphaRange" class="alpha-slider" type="range" min="5" max="70" step="1" value="25" />
-</div>
+  <!-- Compact Color UI -->
+  <div class="color-toggle" id="colorToggle" title="Chart color">
+    <span>›</span>
+  </div>
+  <div class="color-pop" id="colorPop">
+    <div class="row"><span class="tiny">Color</span><input id="primaryPicker" class="fullcolor" type="color" value="#1db954"></div>
+    <div class="row"><span class="tiny">Fill</span><input id="alphaRange" class="alpha" type="range" min="5" max="70" step="1" value="25"></div>
+  </div>
 
-<h1>Your Power Chart</h1>
-<div class="meta" id="metaLine">Alpha 0.01 · Demo</div>
+  <main>
+    <h1>Your Power Chart</h1>
+    <div class="meta" id="metaLine">Alpha 0.01 · Demo</div>
 
-<div class="results-container">
-  <canvas id="resultsChart"></canvas>
-  <div class="score-list" id="scoreList"></div>
-</div>
+    <div class="results-container">
+      <canvas id="resultsChart"></canvas>
+      <div class="score-list" id="scoreList"></div>
+    </div>
 
-<div class="btns">
-  <button onclick="window.location.href='Quiz.html'">Retake Quiz</button>
-  <button id="downloadBtn">Download PNG</button>
-  <button id="clearBtn" title="Clears saved results">Clear Saved Result</button>
-</div>
+    <div class="btns">
+      <button onclick="window.location.href='Quiz.html'">Retake Quiz</button>
+      <button id="downloadBtn">Download PNG</button>
+      <button id="clearBtn" title="Clears saved results">Clear Saved Result</button>
+    </div>
 
-<p class="muted">Tip: come back after a new PR and retake the quiz — your chart will update.</p>
+    <p class="muted">Tip: update your stats in <em>Your Data</em> to keep the chart accurate.</p>
+  </main>
 
 <script>
-const labels = ["Intellect", "Religion", "Strength", "Endurance", "Social Life", "Mental Health"];
+// ---------- Profile menu ----------
+const profileBtn = document.getElementById('profileBtn');
+const profileMenu = document.getElementById('profileMenu');
+profileBtn.addEventListener('click', () => {
+  profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
+});
+document.addEventListener('click', (e)=>{
+  if(!profileMenu.contains(e.target) && e.target!==profileBtn){ profileMenu.style.display='none'; }
+});
 
-// THEME: load + persist
+// ---------- Color theme (compact popover) ----------
 const THEME_KEY = "powerChart.theme";
 const theme = JSON.parse(localStorage.getItem(THEME_KEY) || "{}");
 let primary = theme.primary || "#1db954";
 let alpha = typeof theme.alpha === "number" ? theme.alpha : 25;
 
-document.getElementById("primaryPicker").value = primary;
-document.getElementById("alphaRange").value = alpha;
+const toggle = document.getElementById('colorToggle');
+const pop = document.getElementById('colorPop');
+const primaryPicker = document.getElementById('primaryPicker');
+const alphaRange = document.getElementById('alphaRange');
 
-// Helpers
+primaryPicker.value = primary;
+alphaRange.value = alpha;
+
+toggle.addEventListener('click', ()=>{
+  pop.style.display = pop.style.display === 'block' ? 'none' : 'block';
+});
+document.addEventListener('click', (e)=>{
+  if(!pop.contains(e.target) && e.target!==toggle && e.target!==primaryPicker){ pop.style.display='none'; }
+});
+
 function hexToRGBA(hex, a){
   let c = hex.replace("#","");
   if (c.length===3){ c = c.split("").map(x=>x+x).join(""); }
@@ -122,11 +128,10 @@ function saveTheme(){
   localStorage.setItem(THEME_KEY, JSON.stringify({primary, alpha: parseInt(alpha)}));
 }
 
-// Load latest payload (new) or fallback (legacy)
+// ---------- Data loading ----------
+const labels = ["Intellect", "Religion", "Strength", "Endurance", "Social Life", "Mental Health"];
 const latest = JSON.parse(localStorage.getItem("powerChart.latest") || "null");
 const legacy = JSON.parse(localStorage.getItem("quizScores") || "{}");
-
-// Compute display data
 let averages = labels.map(label => (legacy[label] ? legacy[label] : 0)); // 1–6
 let grades = {};
 let normalized = {};
@@ -135,7 +140,7 @@ let timestamp = null;
 function gradeFromAverage(avg1to6){
   const pct = Math.max(0, Math.min(100, Math.round(((avg1to6 - 1) / 5) * 100)));
   if (pct >= 95) return {grade:"S", color:"#ffd700", pct};
-  if (pct >= 85) return {grade:"A", color:primary, pct}; // use primary for A+ tiers
+  if (pct >= 85) return {grade:"A", color:primary, pct};
   if (pct >= 75) return {grade:"B", color:"#21bf73", pct};
   if (pct >= 65) return {grade:"C", color:"#3ea0ff", pct};
   if (pct >= 50) return {grade:"D", color:"#ffb020", pct};
@@ -149,7 +154,6 @@ if (latest){
   grades = latest.grades;
   normalized = latest.normalized;
 } else {
-  // derive from legacy if present
   labels.forEach(l => {
     const g = gradeFromAverage(legacy[l] || 0);
     grades[l] = g.grade; normalized[l] = g.pct;
@@ -163,29 +167,27 @@ if (timestamp){
 }
 
 // Build score list
-const scoreListDiv = document.getElementById("scoreList");
-labels.forEach(label => {
-  const idx = labels.indexOf(label);
-  const avg = (averages[idx] || 0);
+const scoreListDiv = document.querySelector(".score-list");
+labels.forEach((label, i) => {
+  const avg = (averages[i] || 0);
   const gInfo = gradeFromAverage(avg);
   const g = grades[label] || gInfo.grade;
   const pct = normalized[label] ?? gInfo.pct;
   const color = gInfo.color;
   const item = document.createElement("div");
-  item.classList.add("score-item");
+  item.className = "score-item";
   item.innerHTML = `<div><strong>${label}</strong><div class="muted">${pct}%</div></div>
                     <span class="badge" style="background:${color}">${g}</span>`;
   scoreListDiv.appendChild(item);
 });
 
-// Radar chart
-const gradedLabels = labels.map((label, i) => {
-  const avg = averages[i] || 0;
-  const g = grades[label] || gradeFromAverage(avg).grade;
-  return `${label} (${g})`;
-});
+// Chart
 let datasetBorder = primary;
 let datasetFill = hexToRGBA(primary, alpha/100);
+const gradedLabels = labels.map((label, i) => {
+  const g = grades[label] || gradeFromAverage(averages[i]||0).grade;
+  return `${label} (${g})`;
+});
 
 const chart = new Chart(document.getElementById("resultsChart"), {
   type: "radar",
@@ -203,47 +205,13 @@ const chart = new Chart(document.getElementById("resultsChart"), {
   options: {
     animation: { duration: 600 },
     scales: {
-      r: {
-        min: 0,
-        max: 100,
-        ticks: { display: false },
-        grid: { color: "rgba(255,255,255,0.15)" },
-        angleLines: { color: "rgba(255,255,255,0.3)" },
-        pointLabels: { color: "white", font: { size: 14, weight: 600 } }
-      }
+      r: { min: 0, max: 100, ticks: { display: false }, grid: { color: "rgba(255,255,255,0.15)" }, angleLines: { color: "rgba(255,255,255,0.3)" }, pointLabels: { color: "white", font: { size: 14, weight: 600 } } }
     },
-    plugins: {
-      legend: {
-        labels: { color: "white", font: { weight: 600, size: 14 } }
-      },
-      tooltip: {
-        callbacks: {
-          label: function(ctx){
-            return ctx.dataset.label + ": " + ctx.raw + "%";
-          }
-        }
-      }
-    }
+    plugins: { legend: { labels: { color: "white", font: { weight: 600, size: 14 } } } }
   }
 });
 
-// Color panel interactions
-document.querySelectorAll('.chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    primary = chip.dataset.color;
-    document.getElementById('primaryPicker').value = primary;
-    applyTheme();
-  });
-});
-document.getElementById('primaryPicker').addEventListener('input', (e)=>{
-  primary = e.target.value;
-  applyTheme();
-});
-document.getElementById('alphaRange').addEventListener('input', (e)=>{
-  alpha = parseInt(e.target.value, 10);
-  applyTheme();
-});
-
+// Apply theme changes
 function applyTheme(){
   const border = primary;
   const fill = hexToRGBA(primary, alpha/100);
@@ -253,6 +221,8 @@ function applyTheme(){
   chart.update();
   saveTheme();
 }
+primaryPicker.addEventListener('input', (e)=>{ primary = e.target.value; applyTheme(); });
+alphaRange.addEventListener('input', (e)=>{ alpha = parseInt(e.target.value,10); applyTheme(); });
 
 // Download & Clear
 document.getElementById("downloadBtn").addEventListener("click", ()=>{
@@ -263,9 +233,8 @@ document.getElementById("downloadBtn").addEventListener("click", ()=>{
 });
 document.getElementById("clearBtn").addEventListener("click", ()=>{
   localStorage.removeItem("powerChart.latest");
-  alert("Saved result cleared. Retake the quiz to generate a new chart.");
+  alert("Saved result cleared. Retake the quiz or fill Your Data.");
 });
 </script>
-
 </body>
 </html>
