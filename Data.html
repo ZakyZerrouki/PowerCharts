@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Power Chart · Your Data</title>
+<title>Power Chart · Your Data (Editable Quiz)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root{ --bg:#0f0f10; --panel:#151a1c; --ink:#eaf2f7; --muted:#9fb0bd; --ring:#25323a; --radius:16px; }
@@ -13,12 +14,12 @@
   main{ padding:18px; max-width:1100px; margin:0 auto; }
   .kicker{ color:var(--muted); margin-bottom:12px }
   section.cat{ background:linear-gradient(180deg,#151a1d,#0f1214); border:1px solid var(--ring); border-radius:var(--radius); padding:14px; margin:12px 0; }
-  h2{ margin:0 0 8px; }
-  .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:10px; }
-  .field{ display:flex; flex-direction:column; gap:6px; background:#0f1417; border:1px solid var(--ring); border-radius:10px; padding:8px; }
-  .field label{ font-size:.9rem; color:var(--muted) }
-  .field input{ padding:8px; border-radius:8px; border:1px solid #2a3943; background:#0b1013; color:var(--ink); }
-  .actions{ display:flex; gap:8px; justify-content:flex-end; margin:16px 0; }
+  h2{ margin:0 0 8px; font-size:1.1rem }
+  .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:10px; }
+  .field{ display:flex; flex-direction:column; gap:6px; background:#0f1417; border:1px solid var(--ring); border-radius:10px; padding:10px; }
+  .field label{ font-size:.92rem; color:var(--muted) }
+  select{ padding:10px; border-radius:8px; border:1px solid #2a3943; background:#0b1013; color:var(--ink); }
+  .actions{ display:flex; gap:8px; justify-content:flex-end; margin:16px 0; flex-wrap:wrap }
   .note{ color:var(--muted); font-size:.9rem }
 </style>
 </head>
@@ -28,7 +29,7 @@
   <strong>Your Data</strong>
   <div style="display:flex; gap:8px">
     <button class="btn" id="saveBtn">Save</button>
-    <button class="btn" id="recomputeBtn" title="Compute chart from your data">Recompute Chart</button>
+    <button class="btn" id="recomputeBtn" title="Compute chart from your answers">Recompute Chart</button>
   </div>
 </header>
 
@@ -36,60 +37,20 @@
 /* ===== PowerChart Profiles & Storage Helpers ===== */
 const PC = (function(){
   const PROFILE_KEY = "powerChart.profiles";
-
-  function loadProfiles(){
-    const raw = localStorage.getItem(PROFILE_KEY);
-    if (!raw) return { activeId: null, byId: {} };
-    try { return JSON.parse(raw); } catch(e){ return { activeId: null, byId: {} }; }
-  }
-  function saveProfiles(state){
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(state));
-  }
+  function loadProfiles(){ const raw = localStorage.getItem(PROFILE_KEY); if (!raw) return { activeId: null, byId: {} }; try { return JSON.parse(raw); } catch(e){ return { activeId: null, byId: {} }; } }
+  function saveProfiles(state){ localStorage.setItem(PROFILE_KEY, JSON.stringify(state)); }
   function ensureDefaultProfile(){
     let state = loadProfiles();
     if (!state.activeId || !state.byId[state.activeId]){
       const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
-      state.byId[id] = { username: "Player One", pfp: null, enabledAttrs: ["Intellect","Religion","Strength","Endurance","Social Life","Mental Health","Career"], theme: {primary:"#1db954", alpha:25} };
-      state.activeId = id;
-      saveProfiles(state);
+      state.byId[id] = { username: "Player One", pfp: null, enabledAttrs: ["Intellect","Religion","Strength","Endurance","Social","Mental","Career"], theme: {primary:"#1db954", alpha:25} };
+      state.activeId = id; saveProfiles(state);
     }
     return state;
   }
-  function getActiveProfile(){
-    const state = ensureDefaultProfile();
-    return { id: state.activeId, ...state.byId[state.activeId] };
-  }
-  function setActiveProfile(id){
-    const state = loadProfiles();
-    if (state.byId[id]){ state.activeId = id; saveProfiles(state); return true; }
-    return false;
-  }
-  function upsertProfile(id, data){
-    const state = loadProfiles();
-    if (!id){
-      id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
-    }
-    state.byId[id] = { ...(state.byId[id]||{}), ...data };
-    if (!state.activeId) state.activeId = id;
-    saveProfiles(state);
-    return id;
-  }
-  function deleteProfile(id){
-    const state = loadProfiles();
-    delete state.byId[id];
-    if (state.activeId === id){
-      state.activeId = Object.keys(state.byId)[0] || null;
-    }
-    saveProfiles(state);
-    // purge per-profile keys
-    Object.keys(localStorage).forEach(k=>{
-      if (k.endsWith("."+id)) localStorage.removeItem(k);
-    });
-  }
+  function getActiveProfile(){ const state = ensureDefaultProfile(); return { id: state.activeId, ...state.byId[state.activeId] }; }
   function key(base){ const {id} = getActiveProfile(); return `${base}.${id}`; }
-  function keyFor(base, id){ return `${base}.${id}`; }
-
-  return { loadProfiles, saveProfiles, ensureDefaultProfile, getActiveProfile, setActiveProfile, upsertProfile, deleteProfile, key, keyFor };
+  return { getActiveProfile, key, loadProfiles, saveProfiles };
 })();
 </script>
 
@@ -99,60 +60,148 @@ const PC = (function(){
   <div class="actions">
     <button class="btn" id="clearBtn">Clear All</button>
   </div>
-  <p class="note">Data is stored per profile in your browser.</p>
+  <p class="note">Tip: change answers anytime. This is the same content as the quiz, just editable in one place. All data is per profile and local.</p>
 </main>
 
 <script>
-const FIELDS = {
-  "Strength": ["bench_1RM_kg","squat_1RM_kg","deadlift_1RM_kg","ohp_1RM_kg","pullups_max","pushups_max","dips_max","plank_sec","grip_strength_kg","vertical_jump_cm","broad_jump_cm","sprint_40m_s","farmer_carry_kg_20m","row_500m_s","kettlebell_swing_24kg_reps","bodyweight_kg","bmi","waist_cm","bf_percent","resting_hr_bpm"],
-  "Endurance": ["run_5k_min","run_10k_min","run_half_marathon_min","cycling_20km_min","swim_1km_min","row_2k_min","hiit_20min_rounds","vo2max_est","stair_climb_flights","ruck_10kg_5km_min","recovery_time_min","sleep_hours","hrv_ms","long_walk_km","active_days_per_week","steps_daily_avg","resting_hr_bpm","yoyo_test_level","beep_test_level","time_to_hr120_s"],
-  "Intellect": ["books_per_month","study_hours_week","languages_count","coding_hours_week","puzzle_sessions_week","memory_test_score","reaction_time_ms","math_quiz_score","reading_speed_wpm","writing_words_week","creative_sessions_week","course_completion_qtr","focus_block_minutes","note_quality_score","debate_sessions_month","spaced_recall_days","logic_puzzles_score","vocab_new_words_week","concept_maps_month","tutorials_completed_month"],
-  "Religion": ["prayers_per_day","fasting_days_year","charity_events_year","scripture_pages_week","community_hours_month","pilgrimage_progress_percent","gratitude_entries_week","meditation_minutes_day","study_group_sessions_month","teachings_shared_month","memorized_text_lines","service_acts_week","avoid_harm_days_streak","ethical_decisions_logged_month","donation_amount_month","reflection_journal_days_month","kindness_acts_week","volunteer_hours_month","patience_score_self","forgiveness_actions_month"],
-  "Social Life": ["close_friends_count","events_attended_month","calls_or_msgs_day","conflict_resolved_month","new_connections_month","mentorship_sessions_month","family_dinners_month","dates_or_outings_month","community_posts_month","group_projects_quarter","helping_acts_week","networking_hours_month","hosted_gatherings_month","collab_successes_month","thank_you_notes_month","birthday_remembered_month","listening_sessions_week","empathy_score_self","social_anxiety_scale","assertive_actions_week"],
-  "Mental Health": ["calm_days_week","stress_level_self","sleep_quality_score","mindfulness_minutes_day","therapy_sessions_month","journaling_days_week","gratitude_entries_week","hobbies_hours_week","outdoor_hours_week","screen_free_hours_week","mood_avg_1to10","focus_quality_1to10","energy_level_1to10","resilience_events_handled_month","anxiety_spikes_month","panic_events_month","support_contacts_month","self_care_days_week","breathing_sessions_week","sugar_free_days_week"],
-  "Career": ["role_level_1to10","income_percentile_field","projects_shipped_year","skills_hours_week","certifications_year","team_size","people_managed","promotions_3yr","salary_growth_percent_year","client_nps_0to100","impact_score_1to10","responsibility_score_1to10","autonomy_score_1to10","learning_opps_score_1to10","job_satisfaction_1to10","public_speaking_events_year","papers_or_patents","side_projects_year","interviews_given_year","mentored_people_year"]
-};
+// Use same questions as Quiz, but render as selects.
+// NOTE: On the radar, "Mental Health" is shown as "Mental" label; here we still keep the full category but store as "Mental" for consistency.
 
+const QUESTIONS = [
+  // INTELLECT
+  { c: "Intellect", q: "How many books or articles do you read per month?", o: ["None", "1", "2-3", "4-5", "6-7", "8+"] },
+  { c: "Intellect", q: "Can you solve complex problems without help?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { c: "Intellect", q: "How often do you learn a new skill?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { c: "Intellect", q: "Do you engage in logical reasoning games or puzzles?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { c: "Intellect", q: "How well do you retain new knowledge?", o: ["Very poorly", "Poorly", "Average", "Good", "Very good", "Excellent"] },
+
+  // RELIGION
+  { c: "Religion", q: "How many of the 5 daily prayers do you consistently perform?", o: ["0", "1", "2", "3", "4", "5"] },
+  { c: "Religion", q: "Do you fast during Ramadan completely?", o: ["Never", "Rarely", "Sometimes", "Mostly", "Yes, fully", "Always"] },
+  { c: "Religion", q: "Do you give charity consistently?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { c: "Religion", q: "Do you read or study religious texts regularly?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { c: "Religion", q: "Do you trust and rely on God in difficult situations?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+
+  // STRENGTH
+  { c: "Strength", q: "How many push-ups can you do in one set?", o: ["0", "1-5", "6-15", "16-30", "31-50", "51+"] },
+  { c: "Strength", q: "How many pull-ups can you do?", o: ["0", "1", "2-5", "6-10", "11-20", "20+"] },
+  { c: "Strength", q: "Can you lift heavy objects easily?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { c: "Strength", q: "How strong is your core (planks, sit-ups)?", o: ["Very weak", "Weak", "Average", "Strong", "Very strong", "Excellent"] },
+  { c: "Strength", q: "How balanced is your overall muscular development?", o: ["Very poor", "Poor", "Average", "Good", "Very good", "Excellent"] },
+
+  // ENDURANCE
+  { c: "Endurance", q: "How tired are you after a 5 km run?", o: ["Exhausted", "Very tired", "Moderately tired", "Slightly tired", "Barely tired", "Not tired"] },
+  { c: "Endurance", q: "How long can you maintain a steady pace while running?", o: ["<5min", "5-10min", "10-20min", "20-30min", "30-60min", "60+min"] },
+  { c: "Endurance", q: "How long can you perform high-intensity activity?", o: ["<1min", "1-3min", "3-5min", "5-10min", "10-20min", "20+min"] },
+  { c: "Endurance", q: "Can you do long-duration cycling, swimming, or similar?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { c: "Endurance", q: "How quickly do you recover from fatigue?", o: ["Very slowly", "Slowly", "Average", "Fast", "Very fast", "Instant"] },
+
+  // SOCIAL LIFE
+  { c: "Social", q: "How many close friends do you regularly see?", o: ["0", "1", "2", "3-4", "5-7", "8+"] },
+  { c: "Social", q: "How well do you handle conflicts with others?", o: ["Very poorly", "Poorly", "Average", "Good", "Very good", "Excellent"] },
+  { c: "Social", q: "Do you participate in community or social events?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { c: "Social", q: "Do you maintain healthy relationships?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { c: "Social", q: "How empathetic are you towards others?", o: ["Very low", "Low", "Average", "Good", "Very good", "High"] },
+
+  // MENTAL (shortened from Mental Health)
+  { c: "Mental", q: "How often do you feel calm and content?", o: ["Never", "Rarely", "Sometimes", "Often", "Very often", "Always"] },
+  { c: "Mental", q: "How well do you manage stress?", o: ["Very poorly", "Poorly", "Average", "Well", "Very well", "Excellent"] },
+  { c: "Mental", q: "Do you get enough restful sleep?", o: ["Never", "Rarely", "Sometimes", "Often", "Usually", "Always"] },
+  { c: "Mental", q: "How often do you feel motivated?", o: ["Never", "Rarely", "Sometimes", "Often", "Very often", "Always"] },
+  { c: "Mental", q: "How well can you focus and concentrate?", o: ["Very poorly", "Poorly", "Average", "Good", "Very good", "Excellent"] },
+
+  // CAREER
+  { c: "Career", q: "Role seniority (self-rated)", o: ["1", "2", "3", "4", "5", "6"] },
+  { c: "Career", q: "Scope of responsibility", o: ["Very low", "Low", "Moderate", "High", "Very high", "Executive"] },
+  { c: "Career", q: "Skill growth pace", o: ["Very slow", "Slow", "Average", "Fast", "Very fast", "Elite"] },
+  { c: "Career", q: "Major projects delivered last year", o: ["0", "1", "2", "3", "4", "5+"] },
+  { c: "Career", q: "Job satisfaction", o: ["1", "2", "3", "4", "5", "6"] }
+];
+
+// Render sections per enabled attributes
 const ap = PC.getActiveProfile();
-document.getElementById('who').textContent = `Editing profile: ${ap.username || 'Player One'} — ${ap.enabledAttrs.length} attributes enabled`;
+const enabled = ap.enabledAttrs || ["Intellect","Religion","Strength","Endurance","Social","Mental","Career"];
+document.getElementById('who').textContent = 'Editing profile: ' + (ap.username || 'Player One');
+
+const byCat = {};
+QUESTIONS.forEach((q, i) => { if (enabled.includes(q.c)) { (byCat[q.c] = byCat[q.c] || []).push({i, ...q}); } });
 
 const sections = document.getElementById('sections');
-(ap.enabledAttrs && ap.enabledAttrs.length ? ap.enabledAttrs : Object.keys(FIELDS)).forEach(cat => {
-  const fields = FIELDS[cat] || [];
+Object.keys(byCat).forEach(cat => {
+  const list = byCat[cat];
   const sec = document.createElement('section'); sec.className="cat";
-  sec.innerHTML = `<h2>${cat}</h2><div class="grid">${fields.map(f=>`<div class="field"><label for="${cat}_${f}">${f.replace(/_/g,' ')}</label><input type="number" step="any" id="${cat}_${f}" placeholder="0"></div>`).join('')}</div>`;
+  const fields = list.map((item, idx) => {
+    const qid = `${cat}__${item.i}`;
+    const opts = item.o.map((txt, oi) => `<option value="${oi+1}">${txt}</option>`).join('');
+    return `<div class="field"><label for="${qid}">${item.q}</label><select id="${qid}">${opts}</select></div>`;
+  }).join('');
+  sec.innerHTML = `<h2>${cat}</h2><div class="grid">${fields}</div>`;
   sections.appendChild(sec);
 });
 
-const METRICS_KEY = PC.key("powerChart.metrics");
-const existing = JSON.parse(localStorage.getItem(METRICS_KEY) || "{}");
-for (const [k,v] of Object.entries(existing)) { const el = document.getElementById(k); if (el) el.value = v; }
-
-document.getElementById('saveBtn').addEventListener('click', ()=>{
-  const inputs = sections.querySelectorAll('input[type="number"]');
-  const data = {}; inputs.forEach(inp => { if (inp.value!=="" && !isNaN(parseFloat(inp.value))) data[inp.id] = parseFloat(inp.value); });
-  localStorage.setItem(METRICS_KEY, JSON.stringify(data)); alert("Saved ✓");
+// Load existing answers (if any)
+const ANSWERS_KEY = PC.key("powerChart.quizAnswers");
+const existing = JSON.parse(localStorage.getItem(ANSWERS_KEY) || "{}");
+Object.entries(existing).forEach(([qid, val]) => {
+  const el = document.getElementById(qid);
+  if (el) el.value = val;
 });
 
-function recompute() {
-  const data = JSON.parse(localStorage.getItem(METRICS_KEY) || "{}");
-  const byCat = {};
-  for (const k of Object.keys(data)) { const [cat] = k.split('_'); byCat[cat] = byCat[cat] || []; byCat[cat].push(parseFloat(data[k])); }
-  const normalized = {}, averages = {}, grades = {};
-  function clamp(x, lo, hi){ return Math.min(hi, Math.max(lo, x)); }
-  function toPct(arr){ if (!arr || arr.length===0) return 0; const avg = arr.reduce((a,b)=>a+b,0)/arr.length; return clamp(Math.round(avg),0,100); }
-  function fromPctTo1to6(pct){ return 1 + 5*(pct/100); }
-  function grade(pct){ if (pct>=95) return "S"; if (pct>=85) return "A"; if (pct>=75) return "B"; if (pct>=65) return "C"; if (pct>=50) return "D"; if (pct>=35) return "E"; return "F"; }
-  (ap.enabledAttrs && ap.enabledAttrs.length ? ap.enabledAttrs : Object.keys(FIELDS)).forEach(cat => {
-    const pct = toPct(byCat[cat]); normalized[cat] = pct; averages[cat] = parseFloat(fromPctTo1to6(pct).toFixed(2)); grades[cat] = grade(pct);
+// Save
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const data = {};
+  document.querySelectorAll('select').forEach(sel => { if (sel.value) data[sel.id] = parseInt(sel.value, 10); });
+  localStorage.setItem(ANSWERS_KEY, JSON.stringify(data));
+  alert("Saved ✓");
+});
+
+// Recompute chart from answers (like the quiz)
+function recompute(){
+  const data = JSON.parse(localStorage.getItem(ANSWERS_KEY) || "{}");
+  // Build scores per category using averages (1..6)
+  const perCat = {};
+  Object.keys(data).forEach(qid => {
+    const [cat] = qid.split('__');
+    perCat[cat] = perCat[cat] || [];
+    perCat[cat].push(data[qid]); // already 1..6
   });
-  const payload = { timestamp: new Date().toISOString(), averages, normalized, grades, source: "metrics" };
+
+  const allCats = Object.keys(byCat); // only enabled categories are rendered
+  const averages = {}, normalized = {}, grades = {};
+
+  function gradeFromAverage(avg1to6){
+    const pct = Math.max(0, Math.min(100, Math.round(((avg1to6 - 1) / 5) * 100)));
+    if (pct >= 95) return {grade:"S", pct};
+    if (pct >= 85) return {grade:"A", pct};
+    if (pct >= 75) return {grade:"B", pct};
+    if (pct >= 65) return {grade:"C", pct};
+    if (pct >= 50) return {grade:"D", pct};
+    if (pct >= 35) return {grade:"E", pct};
+    return {grade:"F", pct};
+  }
+
+  allCats.forEach(cat => {
+    const arr = perCat[cat] || [];
+    const avg = arr.length ? (arr.reduce((a,b)=>a+b,0) / arr.length) : 0;
+    averages[cat] = parseFloat(avg.toFixed(2));
+    const g = gradeFromAverage(avg);
+    normalized[cat] = g.pct;
+    grades[cat] = g.grade;
+  });
+
+  const payload = { timestamp: new Date().toISOString(), averages, normalized, grades, source:"your-data-quiz" };
   localStorage.setItem(PC.key("powerChart.latest"), JSON.stringify(payload));
   alert("Chart recomputed ✓ — open Results to see the update.");
 }
 document.getElementById('recomputeBtn').addEventListener('click', recompute);
 
-document.getElementById('clearBtn').addEventListener('click', ()=>{ if (confirm("Clear all saved metrics for this profile?")) { localStorage.removeItem(METRICS_KEY); location.reload(); } });
+// Clear
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  if (confirm("Clear all saved answers for this profile?")) {
+    localStorage.removeItem(ANSWERS_KEY);
+    location.reload();
+  }
+});
 </script>
 </body>
 </html>
