@@ -26,49 +26,54 @@
   button { padding:11px 16px; border:1px solid var(--ring); background-color:#10161a; color:var(--ink); cursor:pointer; font-size:15px; border-radius:12px; transition:.2s; font-weight:600; }
   button:hover { border-color:#2f4654; transform: translateY(-1px); }
   .muted{ color: var(--muted); font-size:.9rem }
-
-  /* Top bar */
-  .topbar{ position:fixed; top:0; left:0; right:0; height:56px; display:flex; align-items:center; justify-content:flex-end; padding:0 14px; backdrop-filter: blur(6px); background: rgba(15,16,17,.35); border-bottom:1px solid rgba(37,50,58,.35); z-index:20; }
-  .avatar{ width:36px; height:36px; border-radius:999px; background:linear-gradient(135deg,#00a8ff,#1db954); border:1px solid rgba(255,255,255,.15); display:grid; place-items:center; font-weight:800; font-size:.8rem; cursor:pointer; }
-  .menu{ position:absolute; top:50px; right:10px; background:#0f1417; border:1px solid var(--ring); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.5); min-width:180px; display:none; }
+  .topbar{ position:fixed; top:0; left:0; right:0; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 14px; backdrop-filter: blur(6px); background: rgba(15,16,17,.35); border-bottom:1px solid rgba(37,50,58,.35); z-index:20; }
+  .avatar{ width:36px; height:36px; border-radius:999px; background:linear-gradient(135deg,#00a8ff,#1db954); border:1px solid rgba(255,255,255,.15); display:grid; place-items:center; font-weight:800; font-size:.8rem; cursor:pointer; overflow:hidden }
+  .avatar img{ width:100%; height:100%; object-fit:cover }
+  .menu{ position:absolute; top:50px; right:10px; background:#0f1417; border:1px solid var(--ring); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.5); min-width:190px; display:none; }
   .menu a{ display:block; padding:10px 12px; color:var(--ink); text-decoration:none; font-size:.95rem; }
   .menu a:hover{ background:#11181d; }
-  .carret{ margin-left:8px; opacity:.7 }
-
-  /* Compact Color Toggle */
-  .color-toggle{ position:fixed; right:14px; bottom:14px; width:40px; height:40px; border-radius:12px; border:1px solid var(--ring);
-    background:#0f1417; display:grid; place-items:center; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,.5); z-index:15; }
-  .color-toggle span{ display:block; transform: rotate(90deg); font-size:20px; line-height:1; color:var(--ink); opacity:.75; }
-  .color-pop{ position:fixed; right:14px; bottom:64px; width:220px; padding:10px; border-radius:12px; background:#0f1417; border:1px solid var(--ring);
-    box-shadow:0 12px 40px rgba(0,0,0,.55); display:none; z-index:15; }
+  .fab{ position:fixed; right:14px; z-index:15; width:40px; height:40px; border-radius:12px; border:1px solid var(--ring); background:#0f1417; display:grid; place-items:center; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,.5); }
+  #colorToggle{ bottom:14px; }
+  #attrsToggle{ bottom:62px; }
+  .pop{ position:fixed; right:14px; width:220px; padding:10px; border-radius:12px; background:#0f1417; border:1px solid var(--ring); box-shadow:0 12px 40px rgba(0,0,0,.55); display:none; z-index:15; }
+  #colorPop{ bottom:64px; }
+  #attrsPop{ bottom:112px; }
   .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0; }
   .tiny{ font-size:12px; color:var(--muted) }
   .alpha{ width:120px; }
   .fullcolor{ width:100%; height:34px; border:none; background:transparent; cursor:pointer; padding:0; }
-
+  .attr-list{ display:grid; grid-template-columns:1fr; gap:6px; max-height:200px; overflow:auto }
+  label.chk{ display:flex; gap:8px; align-items:center; background:#0f1417; border:1px solid var(--ring); border-radius:10px; padding:6px 8px; }
 </style>
 </head>
 <body>
   <div class="topbar">
-    <div id="profileBtn" class="avatar" title="Profile">PC</div>
-    <div id="profileMenu" class="menu">
-      <a href="Data.html">Your Data</a>
-      <a href="#" id="logoutLike">Sign out (mock)</a>
+    <div class="muted" id="who"></div>
+    <div style="display:flex; align-items:center; gap:8px">
+      <a class="muted" href="Profiles.html" style="text-decoration:none">Profiles</a>
+      <div id="profileBtn" class="avatar" title="Profile"><span>PC</span></div>
+      <div id="profileMenu" class="menu">
+        <a href="Profiles.html">Manage Profiles</a>
+        <a href="Data.html">Your Data</a>
+      </div>
     </div>
   </div>
 
-  <!-- Compact Color UI -->
-  <div class="color-toggle" id="colorToggle" title="Chart color">
-    <span>›</span>
+  <div class="fab" id="attrsToggle" title="Attributes">◎</div>
+  <div class="pop" id="attrsPop">
+    <div class="tiny">Attributes</div>
+    <div id="attrList" class="attr-list"></div>
   </div>
-  <div class="color-pop" id="colorPop">
+
+  <div class="fab" id="colorToggle" title="Chart color"><span style="transform:rotate(90deg)">›</span></div>
+  <div class="pop" id="colorPop">
     <div class="row"><span class="tiny">Color</span><input id="primaryPicker" class="fullcolor" type="color" value="#1db954"></div>
     <div class="row"><span class="tiny">Fill</span><input id="alphaRange" class="alpha" type="range" min="5" max="70" step="1" value="25"></div>
   </div>
 
   <main>
     <h1>Your Power Chart</h1>
-    <div class="meta" id="metaLine">Alpha 0.01 · Demo</div>
+    <div class="meta" id="metaLine">Alpha</div>
 
     <div class="results-container">
       <canvas id="resultsChart"></canvas>
@@ -81,40 +86,99 @@
       <button id="clearBtn" title="Clears saved results">Clear Saved Result</button>
     </div>
 
-    <p class="muted">Tip: update your stats in <em>Your Data</em> to keep the chart accurate.</p>
+    <p class="muted">Data is per-profile and stored locally.</p>
   </main>
 
+
 <script>
-// ---------- Profile menu ----------
+/* ===== PowerChart Profiles & Storage Helpers ===== */
+const PC = (function(){
+  const PROFILE_KEY = "powerChart.profiles";
+
+  function loadProfiles(){
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return { activeId: null, byId: {} };
+    try { return JSON.parse(raw); } catch(e){ return { activeId: null, byId: {} }; }
+  }
+  function saveProfiles(state){
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(state));
+  }
+  function ensureDefaultProfile(){
+    let state = loadProfiles();
+    if (!state.activeId || !state.byId[state.activeId]){
+      const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+      state.byId[id] = { username: "Player One", pfp: null, enabledAttrs: ["Intellect","Religion","Strength","Endurance","Social Life","Mental Health","Career"], theme: {primary:"#1db954", alpha:25} };
+      state.activeId = id;
+      saveProfiles(state);
+    }
+    return state;
+  }
+  function getActiveProfile(){
+    const state = ensureDefaultProfile();
+    return { id: state.activeId, ...state.byId[state.activeId] };
+  }
+  function setActiveProfile(id){
+    const state = loadProfiles();
+    if (state.byId[id]){ state.activeId = id; saveProfiles(state); return true; }
+    return false;
+  }
+  function upsertProfile(id, data){
+    const state = loadProfiles();
+    if (!id){
+      id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+    }
+    state.byId[id] = { ...(state.byId[id]||{}), ...data };
+    if (!state.activeId) state.activeId = id;
+    saveProfiles(state);
+    return id;
+  }
+  function deleteProfile(id){
+    const state = loadProfiles();
+    delete state.byId[id];
+    if (state.activeId === id){
+      state.activeId = Object.keys(state.byId)[0] || null;
+    }
+    saveProfiles(state);
+    // purge per-profile keys
+    Object.keys(localStorage).forEach(k=>{
+      if (k.endsWith("."+id)) localStorage.removeItem(k);
+    });
+  }
+  function key(base){ const {id} = getActiveProfile(); return `${base}.${id}`; }
+  function keyFor(base, id){ return `${base}.${id}`; }
+
+  return { loadProfiles, saveProfiles, ensureDefaultProfile, getActiveProfile, setActiveProfile, upsertProfile, deleteProfile, key, keyFor };
+})();
+</script>
+
+<script>
+// Topbar
+function renderTopbar(){
+  const p = PC.getActiveProfile();
+  const who = document.getElementById('who');
+  who.textContent = `${p.username || 'Player One'} — ${p.enabledAttrs.length} attributes enabled`;
+  const avatar = document.getElementById('profileBtn');
+  avatar.innerHTML = p.pfp ? `<img src="${p.pfp}">` : '<span>PC</span>';
+}
+renderTopbar();
 const profileBtn = document.getElementById('profileBtn');
 const profileMenu = document.getElementById('profileMenu');
-profileBtn.addEventListener('click', () => {
-  profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
-});
-document.addEventListener('click', (e)=>{
-  if(!profileMenu.contains(e.target) && e.target!==profileBtn){ profileMenu.style.display='none'; }
-});
+profileBtn.addEventListener('click', () => { profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block'; });
+document.addEventListener('click', (e)=>{ if(!profileMenu.contains(e.target) && e.target!==profileBtn){ profileMenu.style.display='none'; } });
 
-// ---------- Color theme (compact popover) ----------
-const THEME_KEY = "powerChart.theme";
-const theme = JSON.parse(localStorage.getItem(THEME_KEY) || "{}");
-let primary = theme.primary || "#1db954";
-let alpha = typeof theme.alpha === "number" ? theme.alpha : 25;
+// Theme
+const ap0 = PC.getActiveProfile();
+let primary = (ap0.theme && ap0.theme.primary) || "#1db954";
+let alpha = (ap0.theme && ap0.theme.alpha!=null) ? ap0.theme.alpha : 25;
 
-const toggle = document.getElementById('colorToggle');
-const pop = document.getElementById('colorPop');
+const colorToggle = document.getElementById('colorToggle');
+const colorPop = document.getElementById('colorPop');
 const primaryPicker = document.getElementById('primaryPicker');
 const alphaRange = document.getElementById('alphaRange');
+primaryPicker.value = primary; alphaRange.value = alpha;
 
-primaryPicker.value = primary;
-alphaRange.value = alpha;
-
-toggle.addEventListener('click', ()=>{
-  pop.style.display = pop.style.display === 'block' ? 'none' : 'block';
-});
-document.addEventListener('click', (e)=>{
-  if(!pop.contains(e.target) && e.target!==toggle && e.target!==primaryPicker){ pop.style.display='none'; }
-});
+colorToggle.addEventListener('click', ()=>{ colorPop.style.display = colorPop.style.display === 'block' ? 'none' : 'block'; });
+document.addEventListener('click', (e)=>{ if(!colorPop.contains(e.target) && e.target!==colorToggle && e.target!==primaryPicker){ colorPop.style.display='none'; } });
 
 function hexToRGBA(hex, a){
   let c = hex.replace("#","");
@@ -124,19 +188,45 @@ function hexToRGBA(hex, a){
   const b = parseInt(c.substring(4,6),16);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
-function saveTheme(){
-  localStorage.setItem(THEME_KEY, JSON.stringify({primary, alpha: parseInt(alpha)}));
+function saveThemeToProfile(){
+  const state = PC.loadProfiles();
+  const ap = PC.getActiveProfile();
+  state.byId[ap.id].theme = { primary, alpha: parseInt(alpha) };
+  PC.saveProfiles(state);
 }
 
-// ---------- Data loading ----------
-const labels = ["Intellect", "Religion", "Strength", "Endurance", "Social Life", "Mental Health"];
-const latest = JSON.parse(localStorage.getItem("powerChart.latest") || "null");
-const legacy = JSON.parse(localStorage.getItem("quizScores") || "{}");
-let averages = labels.map(label => (legacy[label] ? legacy[label] : 0)); // 1–6
-let grades = {};
-let normalized = {};
-let timestamp = null;
+// Attributes
+const ALL = ["Intellect","Religion","Strength","Endurance","Social Life","Mental Health","Career"];
+const attrsToggle = document.getElementById('attrsToggle');
+const attrsPop = document.getElementById('attrsPop');
+const attrList = document.getElementById('attrList');
+attrsToggle.addEventListener('click', ()=>{ attrsPop.style.display = attrsPop.style.display === 'block' ? 'none' : 'block'; });
+document.addEventListener('click', (e)=>{ if(!attrsPop.contains(e.target) && e.target!==attrsToggle){ attrsPop.style.display='none'; } });
 
+function renderAttrList(){
+  const ap = PC.getActiveProfile();
+  attrList.innerHTML = "";
+  ALL.forEach(a=>{
+    const id = "chk_"+a.replace(/\s/g,"_");
+    const wrap = document.createElement('label'); wrap.className="chk";
+    const checked = ap.enabledAttrs.includes(a) ? 'checked' : '';
+    wrap.innerHTML = `<input type="checkbox" id="${id}" ${checked}> <span>${a}</span>`;
+    attrList.appendChild(wrap);
+    wrap.querySelector('input').addEventListener('change', (e)=>{
+      const state = PC.loadProfiles();
+      const list = new Set(state.byId[ap.id].enabledAttrs || ALL);
+      if (e.target.checked) list.add(a); else list.delete(a);
+      state.byId[ap.id].enabledAttrs = Array.from(list);
+      PC.saveProfiles(state);
+      renderTopbar();
+      rebuild();
+    });
+  });
+}
+renderAttrList();
+
+// Chart rebuild
+let chart = null;
 function gradeFromAverage(avg1to6){
   const pct = Math.max(0, Math.min(100, Math.round(((avg1to6 - 1) / 5) * 100)));
   if (pct >= 95) return {grade:"S", color:"#ffd700", pct};
@@ -148,81 +238,83 @@ function gradeFromAverage(avg1to6){
   return {grade:"F", color:"#ff4d4f", pct};
 }
 
-if (latest){
-  timestamp = latest.timestamp;
-  averages = labels.map(l => latest.averages[l] ?? 0);
-  grades = latest.grades;
-  normalized = latest.normalized;
-} else {
-  labels.forEach(l => {
-    const g = gradeFromAverage(legacy[l] || 0);
-    grades[l] = g.grade; normalized[l] = g.pct;
+function rebuild(){
+  const ap = PC.getActiveProfile();
+  primary = (ap.theme && ap.theme.primary) || primary;
+  alpha = (ap.theme && ap.theme.alpha!=null) ? ap.theme.alpha : alpha;
+  primaryPicker.value = primary; alphaRange.value = alpha;
+
+  const labels = ap.enabledAttrs && ap.enabledAttrs.length ? ap.enabledAttrs : ALL;
+  const latest = JSON.parse(localStorage.getItem(PC.key("powerChart.latest")) || "null");
+  const legacy = JSON.parse(localStorage.getItem("quizScores") || "{}");
+  let averages = labels.map(label => (legacy[label] ? legacy[label] : 0)); // 1–6
+  let grades = {}; let normalized = {}; let timestamp = null;
+
+  if (latest){
+    timestamp = latest.timestamp;
+    averages = labels.map(l => latest.averages[l] ?? 0);
+    grades = latest.grades || {};
+    normalized = latest.normalized || {};
+  } else {
+    labels.forEach(l => {
+      const g = gradeFromAverage(legacy[l] || 0);
+      grades[l] = g.grade; normalized[l] = g.pct;
+    });
+  }
+
+  if (timestamp){
+    const dt = new Date(timestamp);
+    const nice = dt.toLocaleString(undefined, {year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit"});
+    document.getElementById("metaLine").textContent = `Recorded ${nice}`;
+  }
+
+  // score list
+  const scoreListDiv = document.getElementById("scoreList");
+  scoreListDiv.innerHTML = "";
+  labels.forEach((label, i) => {
+    const avg = (averages[i] || 0);
+    const gInfo = gradeFromAverage(avg);
+    const g = grades[label] || gInfo.grade;
+    const pct = normalized[label] ?? gInfo.pct;
+    const color = gInfo.color;
+    const item = document.createElement("div");
+    item.className = "score-item";
+    item.innerHTML = `<div><strong>${label}</strong><div class="muted">${pct}%</div></div>
+                      <span class="badge" style="background:${color}">${g}</span>`;
+    scoreListDiv.appendChild(item);
+  });
+
+  const gradedLabels = labels.map((label, i) => {
+    const g = grades[label] || gradeFromAverage(averages[i]||0).grade;
+    return `${label} (${g})`;
+  });
+
+  const ctx = document.getElementById("resultsChart").getContext("2d");
+  if (chart){ chart.destroy(); }
+  chart = new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: gradedLabels,
+      datasets: [{
+        label: "Your Stats (0–100)",
+        data: labels.map((_, i) => Math.max(0, Math.min(100, Math.round(((averages[i]||0) - 1) / 5 * 100)))),
+        borderColor: primary,
+        backgroundColor: hexToRGBA(primary, alpha/100),
+        pointBackgroundColor: primary,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      animation: { duration: 400 },
+      scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: "rgba(255,255,255,0.15)" }, angleLines: { color: "rgba(255,255,255,0.3)" }, pointLabels: { color: "white", font: { size: 14, weight: 600 } } } },
+      plugins: { legend: { labels: { color: "white", font: { weight: 600, size: 14 } } } }
+    }
   });
 }
+rebuild();
 
-if (timestamp){
-  const dt = new Date(timestamp);
-  const nice = dt.toLocaleString(undefined, {year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit"});
-  document.getElementById("metaLine").textContent = `Recorded ${nice}`;
-}
-
-// Build score list
-const scoreListDiv = document.querySelector(".score-list");
-labels.forEach((label, i) => {
-  const avg = (averages[i] || 0);
-  const gInfo = gradeFromAverage(avg);
-  const g = grades[label] || gInfo.grade;
-  const pct = normalized[label] ?? gInfo.pct;
-  const color = gInfo.color;
-  const item = document.createElement("div");
-  item.className = "score-item";
-  item.innerHTML = `<div><strong>${label}</strong><div class="muted">${pct}%</div></div>
-                    <span class="badge" style="background:${color}">${g}</span>`;
-  scoreListDiv.appendChild(item);
-});
-
-// Chart
-let datasetBorder = primary;
-let datasetFill = hexToRGBA(primary, alpha/100);
-const gradedLabels = labels.map((label, i) => {
-  const g = grades[label] || gradeFromAverage(averages[i]||0).grade;
-  return `${label} (${g})`;
-});
-
-const chart = new Chart(document.getElementById("resultsChart"), {
-  type: "radar",
-  data: {
-    labels: gradedLabels,
-    datasets: [{
-      label: "Your Stats (0–100)",
-      data: labels.map((_, i) => Math.max(0, Math.min(100, Math.round(((averages[i]||0) - 1) / 5 * 100)))),
-      borderColor: datasetBorder,
-      backgroundColor: datasetFill,
-      pointBackgroundColor: datasetBorder,
-      borderWidth: 2
-    }]
-  },
-  options: {
-    animation: { duration: 600 },
-    scales: {
-      r: { min: 0, max: 100, ticks: { display: false }, grid: { color: "rgba(255,255,255,0.15)" }, angleLines: { color: "rgba(255,255,255,0.3)" }, pointLabels: { color: "white", font: { size: 14, weight: 600 } } }
-    },
-    plugins: { legend: { labels: { color: "white", font: { weight: 600, size: 14 } } } }
-  }
-});
-
-// Apply theme changes
-function applyTheme(){
-  const border = primary;
-  const fill = hexToRGBA(primary, alpha/100);
-  chart.data.datasets[0].borderColor = border;
-  chart.data.datasets[0].pointBackgroundColor = border;
-  chart.data.datasets[0].backgroundColor = fill;
-  chart.update();
-  saveTheme();
-}
-primaryPicker.addEventListener('input', (e)=>{ primary = e.target.value; applyTheme(); });
-alphaRange.addEventListener('input', (e)=>{ alpha = parseInt(e.target.value,10); applyTheme(); });
+primaryPicker.addEventListener('input', (e)=>{ primary = e.target.value; saveThemeToProfile(); rebuild(); });
+alphaRange.addEventListener('input', (e)=>{ alpha = parseInt(e.target.value,10); saveThemeToProfile(); rebuild(); });
 
 // Download & Clear
 document.getElementById("downloadBtn").addEventListener("click", ()=>{
@@ -232,8 +324,9 @@ document.getElementById("downloadBtn").addEventListener("click", ()=>{
   link.click();
 });
 document.getElementById("clearBtn").addEventListener("click", ()=>{
-  localStorage.removeItem("powerChart.latest");
-  alert("Saved result cleared. Retake the quiz or fill Your Data.");
+  localStorage.removeItem(PC.key("powerChart.latest"));
+  alert("Saved result cleared for this profile. Retake the quiz or fill Your Data.");
+  rebuild();
 });
 </script>
 </body>
