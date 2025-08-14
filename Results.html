@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +18,11 @@
     background: linear-gradient(180deg,#151a1d, #0f1214); padding:22px 24px; border-radius: var(--radius);
     border: 1px solid var(--ring); box-shadow: 0 16px 50px rgba(0,0,0,0.45);
   }
-  canvas { max-width: 520px; max-height: 520px; }
+  /* responsive canvas: smaller on phones */
+  canvas { max-width: min(90vw, 520px); max-height: 520px; }
+  @media (max-width: 480px){
+    canvas{ max-width: 92vw; max-height: 380px; }
+  }
   .score-list { display:grid; gap:10px; font-size:16px; min-width:240px; }
   .score-item { background-color:#0f1417; padding:10px 12px; border-radius:12px; border:1px solid var(--ring);
     display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; }
@@ -32,6 +37,8 @@
   .menu{ position:absolute; top:50px; right:10px; background:#0f1417; border:1px solid var(--ring); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.5); min-width:190px; display:none; }
   .menu a{ display:block; padding:10px 12px; color:var(--ink); text-decoration:none; font-size:.95rem; }
   .menu a:hover{ background:#11181d; }
+
+  /* compact toggles bottom-right */
   .fab{ position:fixed; right:14px; z-index:15; width:40px; height:40px; border-radius:12px; border:1px solid var(--ring); background:#0f1417; display:grid; place-items:center; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,.5); }
   #colorToggle{ bottom:14px; }
   #attrsToggle{ bottom:62px; }
@@ -59,12 +66,14 @@
     </div>
   </div>
 
+  <!-- Attribute toggle -->
   <div class="fab" id="attrsToggle" title="Attributes">◎</div>
   <div class="pop" id="attrsPop">
     <div class="tiny">Attributes</div>
     <div id="attrList" class="attr-list"></div>
   </div>
 
+  <!-- Color toggle -->
   <div class="fab" id="colorToggle" title="Chart color"><span style="transform:rotate(90deg)">›</span></div>
   <div class="pop" id="colorPop">
     <div class="row"><span class="tiny">Color</span><input id="primaryPicker" class="fullcolor" type="color" value="#1db954"></div>
@@ -89,76 +98,34 @@
     <p class="muted">Data is per-profile and stored locally.</p>
   </main>
 
-
 <script>
-/* ===== PowerChart Profiles & Storage Helpers ===== */
+/* ===== Profiles helpers ===== */
 const PC = (function(){
   const PROFILE_KEY = "powerChart.profiles";
-
-  function loadProfiles(){
-    const raw = localStorage.getItem(PROFILE_KEY);
-    if (!raw) return { activeId: null, byId: {} };
-    try { return JSON.parse(raw); } catch(e){ return { activeId: null, byId: {} }; }
+  function load(){ const raw = localStorage.getItem(PROFILE_KEY); try{ return raw?JSON.parse(raw):{activeId:null,byId:{}} }catch(e){ return {activeId:null,byId:{}} } }
+  function save(state){ localStorage.setItem(PROFILE_KEY, JSON.stringify(state)); }
+  function ensureDefault(){
+    let s = load();
+    if(!s.activeId || !s.byId[s.activeId]){
+      const id = (crypto.randomUUID?crypto.randomUUID():String(Date.now()));
+      s.byId[id] = { username:"Player One", pfp:null, enabledAttrs:["Intellect","Religion","Strength","Endurance","Social Life","Mental Health","Career"], theme:{primary:"#1db954",alpha:25} };
+      s.activeId = id; save(s);
+    } return s;
   }
-  function saveProfiles(state){
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(state));
-  }
-  function ensureDefaultProfile(){
-    let state = loadProfiles();
-    if (!state.activeId || !state.byId[state.activeId]){
-      const id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
-      state.byId[id] = { username: "Player One", pfp: null, enabledAttrs: ["Intellect","Religion","Strength","Endurance","Social Life","Mental Health","Career"], theme: {primary:"#1db954", alpha:25} };
-      state.activeId = id;
-      saveProfiles(state);
-    }
-    return state;
-  }
-  function getActiveProfile(){
-    const state = ensureDefaultProfile();
-    return { id: state.activeId, ...state.byId[state.activeId] };
-  }
-  function setActiveProfile(id){
-    const state = loadProfiles();
-    if (state.byId[id]){ state.activeId = id; saveProfiles(state); return true; }
-    return false;
-  }
-  function upsertProfile(id, data){
-    const state = loadProfiles();
-    if (!id){
-      id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
-    }
-    state.byId[id] = { ...(state.byId[id]||{}), ...data };
-    if (!state.activeId) state.activeId = id;
-    saveProfiles(state);
-    return id;
-  }
-  function deleteProfile(id){
-    const state = loadProfiles();
-    delete state.byId[id];
-    if (state.activeId === id){
-      state.activeId = Object.keys(state.byId)[0] || null;
-    }
-    saveProfiles(state);
-    // purge per-profile keys
-    Object.keys(localStorage).forEach(k=>{
-      if (k.endsWith("."+id)) localStorage.removeItem(k);
-    });
-  }
-  function key(base){ const {id} = getActiveProfile(); return `${base}.${id}`; }
-  function keyFor(base, id){ return `${base}.${id}`; }
-
-  return { loadProfiles, saveProfiles, ensureDefaultProfile, getActiveProfile, setActiveProfile, upsertProfile, deleteProfile, key, keyFor };
+  function active(){ const s = ensureDefault(); return { id:s.activeId, ...s.byId[s.activeId] }; }
+  function key(base){ const {id}=active(); return base+"."+id; }
+  function saveTheme(primary, alpha){ const s=ensureDefault(); const a=active(); s.byId[a.id].theme={primary, alpha:parseInt(alpha)}; save(s); }
+  function setAttrs(list){ const s=ensureDefault(); const a=active(); s.byId[a.id].enabledAttrs=list; save(s); }
+  function loadState(){ return ensureDefault(); }
+  return { active, key, saveTheme, setAttrs, loadState };
 })();
-</script>
 
-<script>
 // Topbar
 function renderTopbar(){
-  const p = PC.getActiveProfile();
-  const who = document.getElementById('who');
-  who.textContent = `${p.username || 'Player One'} — ${p.enabledAttrs.length} attributes enabled`;
+  const p = PC.active();
+  document.getElementById('who').textContent = (p.username||'Player One') + ' — ' + (p.enabledAttrs?p.enabledAttrs.length:7) + ' attributes enabled';
   const avatar = document.getElementById('profileBtn');
-  avatar.innerHTML = p.pfp ? `<img src="${p.pfp}">` : '<span>PC</span>';
+  avatar.innerHTML = p.pfp ? '<img src="'+p.pfp+'">' : '<span>PC</span>';
 }
 renderTopbar();
 const profileBtn = document.getElementById('profileBtn');
@@ -166,66 +133,54 @@ const profileMenu = document.getElementById('profileMenu');
 profileBtn.addEventListener('click', () => { profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block'; });
 document.addEventListener('click', (e)=>{ if(!profileMenu.contains(e.target) && e.target!==profileBtn){ profileMenu.style.display='none'; } });
 
-// Theme
-const ap0 = PC.getActiveProfile();
-let primary = (ap0.theme && ap0.theme.primary) || "#1db954";
-let alpha = (ap0.theme && ap0.theme.alpha!=null) ? ap0.theme.alpha : 25;
-
-const colorToggle = document.getElementById('colorToggle');
-const colorPop = document.getElementById('colorPop');
+// Theme (per profile)
+let { theme } = PC.active();
+let primary = (theme && theme.primary) || "#1db954";
+let alpha = (theme && theme.alpha!=null) ? theme.alpha : 25;
 const primaryPicker = document.getElementById('primaryPicker');
 const alphaRange = document.getElementById('alphaRange');
 primaryPicker.value = primary; alphaRange.value = alpha;
-
-colorToggle.addEventListener('click', ()=>{ colorPop.style.display = colorPop.style.display === 'block' ? 'none' : 'block'; });
-document.addEventListener('click', (e)=>{ if(!colorPop.contains(e.target) && e.target!==colorToggle && e.target!==primaryPicker){ colorPop.style.display='none'; } });
-
 function hexToRGBA(hex, a){
-  let c = hex.replace("#","");
-  if (c.length===3){ c = c.split("").map(x=>x+x).join(""); }
-  const r = parseInt(c.substring(0,2),16);
-  const g = parseInt(c.substring(2,4),16);
-  const b = parseInt(c.substring(4,6),16);
+  let c = hex.replace("#",""); if (c.length===3){ c = c.split("").map(x=>x+x).join(""); }
+  const r = parseInt(c.substring(0,2),16), g = parseInt(c.substring(2,4),16), b = parseInt(c.substring(4,6),16);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
-function saveThemeToProfile(){
-  const state = PC.loadProfiles();
-  const ap = PC.getActiveProfile();
-  state.byId[ap.id].theme = { primary, alpha: parseInt(alpha) };
-  PC.saveProfiles(state);
-}
+document.getElementById('colorToggle').addEventListener('click', ()=>{
+  const p = document.getElementById('colorPop'); p.style.display = p.style.display==='block' ? 'none' : 'block';
+});
+document.addEventListener('click', (e)=>{
+  const p = document.getElementById('colorPop');
+  if(!p.contains(e.target) && e.target.id!=='colorToggle' && e.target.id!=='primaryPicker'){ p.style.display='none'; }
+});
+primaryPicker.addEventListener('input', (e)=>{ primary = e.target.value; PC.saveTheme(primary, alpha); rebuild(); });
+alphaRange.addEventListener('input', (e)=>{ alpha = parseInt(e.target.value,10); PC.saveTheme(primary, alpha); rebuild(); });
 
-// Attributes
+// Attributes (per profile)
 const ALL = ["Intellect","Religion","Strength","Endurance","Social Life","Mental Health","Career"];
 const attrsToggle = document.getElementById('attrsToggle');
 const attrsPop = document.getElementById('attrsPop');
 const attrList = document.getElementById('attrList');
-attrsToggle.addEventListener('click', ()=>{ attrsPop.style.display = attrsPop.style.display === 'block' ? 'none' : 'block'; });
-document.addEventListener('click', (e)=>{ if(!attrsPop.contains(e.target) && e.target!==attrsToggle){ attrsPop.style.display='none'; } });
-
+attrsToggle.addEventListener('click', ()=>{ attrsPop.style.display = attrsPop.style.display==='block' ? 'none' : 'block'; });
+document.addEventListener('click', (e)=>{ if(!attrsPop.contains(e.target) && e.target.id!=='attrsToggle'){ attrsPop.style.display='none'; } });
 function renderAttrList(){
-  const ap = PC.getActiveProfile();
+  const ap = PC.active();
   attrList.innerHTML = "";
-  ALL.forEach(a=>{
+  (ALL).forEach(a=>{
     const id = "chk_"+a.replace(/\s/g,"_");
     const wrap = document.createElement('label'); wrap.className="chk";
-    const checked = ap.enabledAttrs.includes(a) ? 'checked' : '';
-    wrap.innerHTML = `<input type="checkbox" id="${id}" ${checked}> <span>${a}</span>`;
-    attrList.appendChild(wrap);
-    wrap.querySelector('input').addEventListener('change', (e)=>{
-      const state = PC.loadProfiles();
-      const list = new Set(state.byId[ap.id].enabledAttrs || ALL);
-      if (e.target.checked) list.add(a); else list.delete(a);
-      state.byId[ap.id].enabledAttrs = Array.from(list);
-      PC.saveProfiles(state);
-      renderTopbar();
-      rebuild();
+    const chk = document.createElement('input'); chk.type="checkbox"; chk.id=id; chk.checked = (ap.enabledAttrs||ALL).includes(a);
+    const sp = document.createElement('span'); sp.textContent = a;
+    wrap.appendChild(chk); wrap.appendChild(sp); attrList.appendChild(wrap);
+    chk.addEventListener('change', ()=>{
+      const list = new Set((PC.active().enabledAttrs)||ALL);
+      if (chk.checked) list.add(a); else list.delete(a);
+      PC.setAttrs(Array.from(list)); renderTopbar(); rebuild();
     });
   });
 }
 renderAttrList();
 
-// Chart rebuild
+// Chart + list
 let chart = null;
 function gradeFromAverage(avg1to6){
   const pct = Math.max(0, Math.min(100, Math.round(((avg1to6 - 1) / 5) * 100)));
@@ -238,29 +193,22 @@ function gradeFromAverage(avg1to6){
   return {grade:"F", color:"#ff4d4f", pct};
 }
 
-function rebuild(){
-  const ap = PC.getActiveProfile();
-  primary = (ap.theme && ap.theme.primary) || primary;
-  alpha = (ap.theme && ap.theme.alpha!=null) ? ap.theme.alpha : alpha;
-  primaryPicker.value = primary; alphaRange.value = alpha;
+// Abbreviation: only Mental Health -> Mental (as requested)
+function labelForChart(label){
+  if (label === "Mental Health") return "Mental";
+  return label;
+}
 
-  const labels = ap.enabledAttrs && ap.enabledAttrs.length ? ap.enabledAttrs : ALL;
+function rebuild(){
+  const ap = PC.active();
+  // data
+  const labelsSrc = ap.enabledAttrs && ap.enabledAttrs.length ? ap.enabledAttrs : ALL;
   const latest = JSON.parse(localStorage.getItem(PC.key("powerChart.latest")) || "null");
   const legacy = JSON.parse(localStorage.getItem("quizScores") || "{}");
-  let averages = labels.map(label => (legacy[label] ? legacy[label] : 0)); // 1–6
-  let grades = {}; let normalized = {}; let timestamp = null;
-
-  if (latest){
-    timestamp = latest.timestamp;
-    averages = labels.map(l => latest.averages[l] ?? 0);
-    grades = latest.grades || {};
-    normalized = latest.normalized || {};
-  } else {
-    labels.forEach(l => {
-      const g = gradeFromAverage(legacy[l] || 0);
-      grades[l] = g.grade; normalized[l] = g.pct;
-    });
-  }
+  let averages = labelsSrc.map(label => (latest && latest.averages ? (latest.averages[label] ?? (legacy[label]||0)) : (legacy[label]||0)));
+  let grades = latest && latest.grades ? latest.grades : {};
+  let normalized = latest && latest.normalized ? latest.normalized : {};
+  let timestamp = latest && latest.timestamp ? latest.timestamp : null;
 
   if (timestamp){
     const dt = new Date(timestamp);
@@ -271,11 +219,11 @@ function rebuild(){
   // score list
   const scoreListDiv = document.getElementById("scoreList");
   scoreListDiv.innerHTML = "";
-  labels.forEach((label, i) => {
+  labelsSrc.forEach((label, i) => {
     const avg = (averages[i] || 0);
     const gInfo = gradeFromAverage(avg);
-    const g = grades[label] || gInfo.grade;
-    const pct = normalized[label] ?? gInfo.pct;
+    const g = (grades && grades[label]) || gInfo.grade;
+    const pct = (normalized && normalized[label] != null) ? normalized[label] : gInfo.pct;
     const color = gInfo.color;
     const item = document.createElement("div");
     item.className = "score-item";
@@ -284,20 +232,18 @@ function rebuild(){
     scoreListDiv.appendChild(item);
   });
 
-  const gradedLabels = labels.map((label, i) => {
-    const g = grades[label] || gradeFromAverage(averages[i]||0).grade;
-    return `${label} (${g})`;
-  });
+  // chart labels WITHOUT grade letters; with Mental abbreviation
+  const chartLabels = labelsSrc.map(l => labelForChart(l));
 
   const ctx = document.getElementById("resultsChart").getContext("2d");
   if (chart){ chart.destroy(); }
   chart = new Chart(ctx, {
     type: "radar",
     data: {
-      labels: gradedLabels,
+      labels: chartLabels,
       datasets: [{
         label: "Your Stats (0–100)",
-        data: labels.map((_, i) => Math.max(0, Math.min(100, Math.round(((averages[i]||0) - 1) / 5 * 100)))),
+        data: labelsSrc.map((_, i) => Math.max(0, Math.min(100, Math.round(((averages[i]||0) - 1) / 5 * 100)))),
         borderColor: primary,
         backgroundColor: hexToRGBA(primary, alpha/100),
         pointBackgroundColor: primary,
@@ -306,15 +252,22 @@ function rebuild(){
     },
     options: {
       animation: { duration: 400 },
-      scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: "rgba(255,255,255,0.15)" }, angleLines: { color: "rgba(255,255,255,0.3)" }, pointLabels: { color: "white", font: { size: 14, weight: 600 } } } },
+      scales: {
+        r: {
+          min: 0, max: 100, ticks: { display: false },
+          grid: { color: "rgba(255,255,255,0.15)" },
+          angleLines: { color: "rgba(255,255,255,0.3)" },
+          pointLabels: {
+            color: "white",
+            font: ctx => ({ size: ctx.chart.width < 420 ? 10 : 14, weight: 600 })
+          }
+        }
+      },
       plugins: { legend: { labels: { color: "white", font: { weight: 600, size: 14 } } } }
     }
   });
 }
 rebuild();
-
-primaryPicker.addEventListener('input', (e)=>{ primary = e.target.value; saveThemeToProfile(); rebuild(); });
-alphaRange.addEventListener('input', (e)=>{ alpha = parseInt(e.target.value,10); saveThemeToProfile(); rebuild(); });
 
 // Download & Clear
 document.getElementById("downloadBtn").addEventListener("click", ()=>{
@@ -328,6 +281,9 @@ document.getElementById("clearBtn").addEventListener("click", ()=>{
   alert("Saved result cleared for this profile. Retake the quiz or fill Your Data.");
   rebuild();
 });
+
+// Rebuild on resize to adjust label font
+window.addEventListener('resize', rebuild);
 </script>
 </body>
 </html>
